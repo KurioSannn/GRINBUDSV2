@@ -27,7 +27,7 @@ const CandyIcon = () => (
   </svg>
 );
 
-const StarBurst = ({ x, y, size, color, delay }: { x: number; y: number; size: number; color: string; delay: number }) => (
+const StarBurst = ({ x, y, size, color, delay }: { x: number | string; y: number | string; size: number; color: string; delay: number }) => (
   <motion.div
     style={{ position: "absolute", left: x, top: y, width: size, height: size }}
     initial={{ opacity: 0, scale: 0, rotate: 0 }}
@@ -40,7 +40,7 @@ const StarBurst = ({ x, y, size, color, delay }: { x: number; y: number; size: n
   </motion.div>
 );
 
-const HeartDecor = ({ x, y, size, delay }: { x: number; y: number; size: number; delay: number }) => (
+const HeartDecor = ({ x, y, size, delay }: { x: number | string; y: number | string; size: number; delay: number }) => (
   <motion.div
     style={{ position: "absolute", left: x, top: y }}
     initial={{ opacity: 0, y: 10 }}

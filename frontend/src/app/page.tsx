@@ -4,7 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { SplashScreen } from "@/components/SplashScreen";
 import { Onboarding } from "@/components/Onboarding";
+import { AuthScreen } from "@/components/AuthScreen";
+import { ChildSetupScreen } from "@/components/ChildSetupScreen";
 import MiniGame from "@/components/MiniGame";
+import { supabase } from "@/lib/supabase";
 
 // ── DATA GENERATOR: 32 Levels ──
 const generateLevelsData = () => {
@@ -26,9 +29,9 @@ const generateLevelsData = () => {
       bg: season.bg,
       seasonName: season.name,
       seasonIdx,
-      stars: id <= 3 ? (4 - id) : 0,
-      unlocked: id <= 4,
-      completed: id <= 3,
+      stars: 0,
+      unlocked: id === 1,
+      completed: false,
     };
   });
 };
@@ -388,15 +391,69 @@ function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 export default function HomePage() {
   const [showSplash, setShowSplash]         = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAuth, setShowAuth]             = useState(false);
+  const [showChildSetup, setShowChildSetup] = useState(false);
   const [selected, setSelected]             = useState<(typeof levelsData)[0] | null>(null);
   const [mounted, setMounted]               = useState(false);
   const [isDrawerOpen, setIsDrawerOpen]     = useState(false);
   const [playingLevel, setPlayingLevel]     = useState<number | null>(null);
+  const [levels, setLevels]                 = useState(levelsData);
+  const [showHeader, setShowHeader]         = useState(true);
+  const lastScrollY = useRef(0);
 
-  useEffect(() => { setMounted(true); }, []);
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+      setShowHeader(false); // Sembunyikan pas scroll turun
+    } else if (currentScrollY < lastScrollY.current) {
+      setShowHeader(true);  // Munculin pas scroll naik
+    }
+    lastScrollY.current = currentScrollY;
+  };
 
-  const handleSplashFinish     = () => { setShowSplash(false); setShowOnboarding(true); };
-  const handleOnboardingFinish = () => { setShowOnboarding(false); };
+  useEffect(() => { 
+    setMounted(true); 
+    // Ambil progres awal dari Supabase
+    const fetchProgress = async () => {
+      const { data, error } = await supabase.from("game_results").select("*");
+      
+      const progressMap: Record<number, number> = {};
+      if (data) {
+        // Cari bintang tertinggi per level
+        data.forEach((row) => {
+          progressMap[row.level_id] = Math.max(progressMap[row.level_id] || 0, row.stars);
+        });
+      }
+
+      setLevels(prev => prev.map(lvl => {
+        const stars = progressMap[lvl.id] || 0;
+        const isCompleted = stars > 0;
+        // Level 1 selalu buka, level lain buka kalau level sebelumnya sudah dikerjakan
+        const isUnlocked = lvl.id === 1 || progressMap[lvl.id - 1] !== undefined;
+        return { ...lvl, stars, completed: isCompleted, unlocked: isUnlocked };
+      }));
+    };
+    fetchProgress();
+  }, []);
+
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+    setShowOnboarding(true);
+  };
+
+  const handleOnboardingFinish = () => {
+    setShowOnboarding(false);
+    setShowAuth(true);
+  };
+
+  const handleAuthFinish = () => {
+    setShowAuth(false);
+    setShowChildSetup(true);
+  };
+
+  const handleChildSetupFinish = () => {
+    setShowChildSetup(false);
+  };
 
   const pathData = useMemo(() => {
     let d = `M ${pathPositions[0].x} ${pathPositions[0].y}`;
@@ -408,7 +465,7 @@ export default function HomePage() {
     return d;
   }, []);
 
-  const totalStars = levelsData.reduce((acc, l) => acc + l.stars, 0);
+  const totalStars = levels.reduce((acc, l) => acc + l.stars, 0);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4ff", padding: "20px" }}>
@@ -457,37 +514,70 @@ export default function HomePage() {
         <AnimatePresence>
           <Onboarding onFinish={handleOnboardingFinish} />
         </AnimatePresence>
+      ) : showAuth ? (
+        <AnimatePresence>
+          <AuthScreen onSuccess={handleAuthFinish} />
+        </AnimatePresence>
+      ) : showChildSetup ? (
+        <AnimatePresence>
+          <ChildSetupScreen onFinish={handleChildSetupFinish} />
+        </AnimatePresence>
       ) : (
         <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,0.18), 0 0 0 8px #e0e0f0", borderRadius: "50px" }}>
 
           {/* FIX BUG 2: SideDrawer dikembalikan */}
           <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
-          {/* FIX BUG 5: Header lengkap dengan subtitle + komponen Stars */}
-          <div style={{ background: "linear-gradient(135deg, #FF6B9D, #FF8E53)", padding: "48px 20px 16px", flexShrink: 0, zIndex: 100, boxShadow: "0 4px 20px rgba(255,107,157,0.3)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <button
-                  onClick={() => setIsDrawerOpen(true)}
-                  style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.2)", border: "none", color: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-                >
-                  {SVG_ICONS.profile}
-                </button>
-                <div>
-                  <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 20, color: "white" }}>GrinBuds</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", fontWeight: 800 }}>PETA PETUALANGAN</div>
-                </div>
-              </div>
-              <div style={{ background: "rgba(255,255,255,0.25)", borderRadius: 20, padding: "6px 12px", color: "white", fontWeight: 900, display: "flex", alignItems: "center", gap: 6 }}>
-                <Stars count={1} size={14} />
-                <span>{totalStars}</span>
-              </div>
+          {/* FLOATING HEADER */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+              
+              <AnimatePresence>
+                {showHeader && (
+                  <motion.div
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -100, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    style={{ display: "flex", alignItems: "center", gap: 12, pointerEvents: "auto" }}
+                  >
+                    <button
+                      onClick={() => setIsDrawerOpen(true)}
+                      style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: "none", color: "#FF6B9D", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}
+                    >
+                      {SVG_ICONS.profile}
+                    </button>
+                    <div style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", padding: "8px 16px", borderRadius: "20px", boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}>
+                      <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 18, color: "#FF6B9D", lineHeight: 1 }}>GrinBuds</div>
+                      <div style={{ fontSize: 9, color: "#FF9FCC", fontWeight: 900 }}>PETA PETUALANGAN</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {showHeader && (
+                  <motion.div
+                    initial={{ x: 100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 100, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", borderRadius: 24, padding: "10px 16px", color: "#333", fontWeight: 900, display: "flex", alignItems: "center", gap: 8, pointerEvents: "auto", boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}
+                  >
+                    <svg viewBox="0 0 24 24" width={20} height={20} fill="#FFD93D">
+                      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                    </svg>
+                    <span style={{ fontSize: 16 }}>{totalStars}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
             </div>
           </div>
 
           {/* MAP - FIX BUG 1 & 4: BLOCKER DIV dihapus total.
               Level locked sudah ditangani via disabled + cursor not-allowed di LevelNode. */}
-          <div style={{ flex: 1, overflowY: "auto", background: "linear-gradient(180deg, #B8EEF8 0%, #8ED46A 70%, #72C245 100%)", position: "relative" }}>
+          <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", background: "linear-gradient(180deg, #B8EEF8 0%, #8ED46A 70%, #72C245 100%)", position: "relative" }}>
             <div style={{ position: "relative", height: MAP_HEIGHT, width: "100%" }}>
 
               <svg style={{ position: "absolute", inset: 0, overflow: "visible" }} viewBox={`0 0 390 ${MAP_HEIGHT}`}>
@@ -529,10 +619,10 @@ export default function HomePage() {
               {/* FIX: mounted check dikembalikan agar tidak ada hydration mismatch */}
               {mounted && pathPositions.map((pos, i) => (
                 <LevelNode
-                  key={levelsData[i].id}
-                  level={levelsData[i]}
+                  key={levels[i].id}
+                  level={levels[i]}
                   position={pos}
-                  onClick={() => levelsData[i].unlocked && setSelected(levelsData[i])}
+                  onClick={() => levels[i].unlocked && setSelected(levels[i])}
                 />
               ))}
             </div>
@@ -582,9 +672,35 @@ export default function HomePage() {
             {playingLevel !== null && (
               <MiniGame
                 level={playingLevel}
-                onFinish={(result) => {
-                  console.log("Selesai main!", result);
-                  setPlayingLevel(null);
+                onFinish={async (result) => {
+                  try {
+                    await supabase.from("game_results").insert({
+                      level_id: playingLevel,
+                      stars: result.stars,
+                      total_salah: result.totalSalah,
+                      rata_waktu: result.rataWaktu,
+                      detail_error: result.detailError,
+                    });
+
+                    // Update UI Map secara instan
+                    setLevels(prev => {
+                      const newLevels = prev.map(lvl => {
+                        if (lvl.id === playingLevel) {
+                          return { ...lvl, stars: Math.max(lvl.stars, result.stars), completed: true };
+                        }
+                        // Buka level berikutnya
+                        if (lvl.id === (playingLevel as number) + 1) {
+                          return { ...lvl, unlocked: true };
+                        }
+                        return lvl;
+                      });
+                      return newLevels;
+                    });
+                  } catch (e) {
+                    console.error("Gagal simpan ke Supabase:", e);
+                  } finally {
+                    setPlayingLevel(null);
+                  }
                 }}
               />
             )}

@@ -40,6 +40,26 @@ const ICONS = {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 6L6 18M6 6l12 12"/>
     </svg>
+  ),
+  starFilled: (
+    <svg width="100%" height="100%" viewBox="0 0 24 24" fill="#FFD93D">
+      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/>
+    </svg>
+  ),
+  starEmpty: (
+    <svg width="100%" height="100%" viewBox="0 0 24 24" fill="#FFE0EE">
+      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26Z"/>
+    </svg>
+  ),
+  clock: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF9FCC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+    </svg>
+  ),
+  cross: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF9FCC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </svg>
   )
 };
 
@@ -287,9 +307,102 @@ function DrawingGame({ onComplete }: { onComplete: (res: MiniGameResult) => void
   );
 }
 
+// ── RESULT SCREEN ──
+function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onNext: () => void; onRetry: () => void; }) {
+  const getMessage = (stars: number) => {
+    if (stars === 3) return "Hebattt! Kamu pintar banget hari ini!";
+    if (stars === 2) return "Bagus! Sedikit lagi jadi sempurna!";
+    return "Yay! Kamu sudah mencoba dengan baik!";
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { type: "spring", stiffness: 200, damping: 20, staggerChildren: 0.15 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } }
+  };
+
+  const starVariants = {
+    hidden: { opacity: 0, scale: 0, rotate: -45 },
+    visible: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring", stiffness: 200, damping: 15 } }
+  };
+
+  return (
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px" }}
+    >
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 20 },
+          visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.15 } }
+        }} 
+        style={{ display: "flex", gap: 16, marginBottom: 40, alignItems: "center" }}
+      >
+        {[1, 2, 3].map((starIdx) => (
+          <motion.div 
+            key={starIdx}
+            variants={starVariants}
+            style={{ width: starIdx === 2 ? 100 : 80, height: starIdx === 2 ? 100 : 80, transform: starIdx === 2 ? "translateY(-15px)" : "none" }}
+          >
+            {starIdx <= result.stars ? ICONS.starFilled : ICONS.starEmpty}
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div variants={itemVariants} style={{ textAlign: "center", marginBottom: 40 }}>
+        <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: "#FF6B9D", marginBottom: 12, lineHeight: 1.2 }}>
+          {getMessage(result.stars)}
+        </h2>
+      </motion.div>
+
+      <motion.div variants={itemVariants} style={{ display: "flex", gap: 16, width: "100%", marginBottom: 48 }}>
+        <div style={{ flex: 1, background: "white", padding: 16, borderRadius: 20, boxShadow: "0 8px 16px rgba(255,107,157,0.1)", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ background: "#FFF0F5", padding: 8, borderRadius: "50%" }}>{ICONS.cross}</div>
+          <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, color: "#FF6B9D" }}>{result.totalSalah}</div>
+          <div style={{ fontSize: 12, color: "#FF9FCC", fontWeight: 800 }}>TOTAL SALAH</div>
+        </div>
+        <div style={{ flex: 1, background: "white", padding: 16, borderRadius: 20, boxShadow: "0 8px 16px rgba(255,107,157,0.1)", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ background: "#FFF0F5", padding: 8, borderRadius: "50%" }}>{ICONS.clock}</div>
+          <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, color: "#FF6B9D" }}>{(result.rataWaktu / 1000).toFixed(1)}s</div>
+          <div style={{ fontSize: 12, color: "#FF9FCC", fontWeight: 800 }}>RATA WAKTU</div>
+        </div>
+      </motion.div>
+
+      <motion.div variants={itemVariants} style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onNext}
+          style={{ width: "100%", padding: "18px", borderRadius: 24, background: "#FFD93D", border: "none", color: "white", fontFamily: "'Fredoka One', cursive", fontSize: 20, boxShadow: "0 8px 0 #E5C337, 0 16px 24px rgba(255,217,61,0.3)", cursor: "pointer" }}
+        >
+          Lanjut
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onRetry}
+          style={{ width: "100%", padding: "18px", borderRadius: 24, background: "white", border: "none", color: "#FF6B9D", fontFamily: "'Fredoka One', cursive", fontSize: 18, boxShadow: "0 8px 0 #FFE0EE", cursor: "pointer" }}
+        >
+          Ulangi Level
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── MAIN MINIGAME COMPONENT ──
 export default function MiniGame({ level, onFinish }: MiniGameProps) {
   const isLevel8 = level === 8;
+  const [result, setResult] = useState<MiniGameResult | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   return (
     <motion.div
@@ -309,23 +422,31 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
         overflow: "hidden",
       }}
     >
-      {/* Header Modal */}
-      <div style={{ padding: "32px 24px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h1 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: "#FF6B9D", margin: 0 }}>
-          Level {level}
-        </h1>
-        <button
-          onClick={() => onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] })}
-          style={{ width: 44, height: 44, borderRadius: "50%", background: "white", border: "none", color: "#FF6B9D", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(255,107,157,0.2)", cursor: "pointer" }}
-        >
-          {ICONS.close}
-        </button>
-      </div>
+      {/* Header Modal - Hide on Result Screen */}
+      {!result && (
+        <div style={{ padding: "32px 24px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h1 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: "#FF6B9D", margin: 0 }}>
+            Level {level}
+          </h1>
+          <button
+            onClick={() => onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] })}
+            style={{ width: 44, height: 44, borderRadius: "50%", background: "white", border: "none", color: "#FF6B9D", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(255,107,157,0.2)", cursor: "pointer" }}
+          >
+            {ICONS.close}
+          </button>
+        </div>
+      )}
 
-      {isLevel8 ? (
-        <DrawingGame onComplete={onFinish} />
+      {result ? (
+        <ResultScreen 
+          result={result} 
+          onNext={() => onFinish(result)} 
+          onRetry={() => { setResult(null); setRetryCount(c => c + 1); }} 
+        />
+      ) : isLevel8 ? (
+        <DrawingGame key={`draw-${retryCount}`} onComplete={setResult} />
       ) : (
-        <MultipleChoiceGame onComplete={onFinish} />
+        <MultipleChoiceGame key={`mc-${retryCount}`} onComplete={setResult} />
       )}
     </motion.div>
   );
