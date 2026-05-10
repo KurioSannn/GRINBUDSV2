@@ -1,13 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Check, X, Star, Clock, ArrowRight, Target, Pencil, RefreshCw, Sparkles } from "lucide-react";
+import { RotateCcw, Check, X, Star, Clock, ArrowRight, Target, Pencil, RefreshCw, Sparkles, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
+import { predictFromCanvas, predictBatch, assessDyslexia, type DyslexiaPrediction, type DyslexiaAssessment } from "@/lib/dyslexiaApi";
 
 export interface MiniGameResult {
   stars: number;
   totalSalah: number;
   rataWaktu: number;
   detailError: Array<{ letter: string; wrongAnswer?: string; timeMs: number }>;
+  dyslexiaAssessment?: DyslexiaAssessment;
 }
 
 export interface MiniGameProps {
@@ -238,6 +240,10 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
   const [startTime, setStartTime] = useState(Date.now());
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Store canvas snapshots for batch API call at the end
+  const savedCanvases = useRef<Array<{ canvas: HTMLCanvasElement; targetChar: string }>>([]);
 
   useEffect(() => {
     setStartTime(Date.now());
@@ -300,16 +306,59 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
-  const handleNext = () => {
+  /** Save a snapshot of the current canvas (instant, no API call) */
+  const saveCanvasSnapshot = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const snapshot = document.createElement("canvas");
+    snapshot.width = canvas.width;
+    snapshot.height = canvas.height;
+    const ctx = snapshot.getContext("2d")!;
+    ctx.drawImage(canvas, 0, 0);
+    savedCanvases.current.push({ canvas: snapshot, targetChar: DRAW_LETTERS[currentIndex] });
+  };
+
+  const handleNext = async () => {
+    if (isAnalyzing) return;
+
     const timeMs = Date.now() - startTime;
     const target = DRAW_LETTERS[currentIndex];
+
+    // Save canvas snapshot (instant — no network call)
+    saveCanvasSnapshot();
+
     const newResults = [...results, { letter: target, timeMs }];
+
     if (currentIndex < DRAW_LETTERS.length - 1) {
+      // Not the last letter — move to next instantly (no API wait!)
+      clearCanvas();
       setResults(newResults);
       setCurrentIndex(i => i + 1);
+      setStartTime(Date.now());
     } else {
-      const rataWaktu = newResults.reduce((acc, r) => acc + r.timeMs, 0) / newResults.length;
-      onComplete({ stars: 3, totalSalah: 0, rataWaktu, detailError: newResults });
+      // Last letter — now batch-send ALL canvases to API
+      setIsAnalyzing(true);
+
+      const batchPredictions = await predictBatch(savedCanvases.current);
+
+      // Update results with API data
+      const finalResults = newResults.map((r, i) => {
+        const pred = batchPredictions[i];
+        return {
+          ...r,
+          wrongAnswer: pred?.is_mismatch || pred?.is_reversal
+            ? pred.recognized_char || undefined
+            : undefined,
+        };
+      });
+
+      const totalSalah = finalResults.filter(r => r.wrongAnswer).length;
+      const rataWaktu = finalResults.reduce((acc, r) => acc + r.timeMs, 0) / finalResults.length;
+      const stars = totalSalah === 0 ? 3 : totalSalah <= 2 ? 2 : 1;
+      const dyslexiaAssessment = batchPredictions.length > 0 ? assessDyslexia(batchPredictions) : undefined;
+
+      setIsAnalyzing(false);
+      onComplete({ stars, totalSalah, rataWaktu, detailError: finalResults, dyslexiaAssessment });
     }
   };
 
@@ -396,19 +445,21 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
               <RotateCcw size={20} /> Hapus
             </motion.button>
             <motion.button
-              whileTap={{ scale: 0.94, y: 6, boxShadow: "0 0 0 #46A302" }}
-              whileHover={{ scale: 1.02 }}
+              whileTap={!isAnalyzing ? { scale: 0.94, y: 6, boxShadow: "0 0 0 #46A302" } : {}}
+              whileHover={!isAnalyzing ? { scale: 1.02 } : {}}
               onClick={handleNext}
+              disabled={isAnalyzing}
               style={{
                 flex: 2, padding: "20px 14px", borderRadius: 28, border: "none",
-                background: "#58CC02", color: "white",
-                fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 26,
+                background: isAnalyzing ? "#88DD44" : "#58CC02", color: "white",
+                fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: isAnalyzing ? 20 : 26,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 boxShadow: "0 10px 0 #46A302, 0 16px 24px rgba(88,204,2,0.25)",
-                cursor: "pointer",
+                cursor: isAnalyzing ? "wait" : "pointer",
+                opacity: isAnalyzing ? 0.8 : 1,
               }}
             >
-              Lanjut <Check size={26} />
+              {isAnalyzing ? (<><Loader2 size={22} style={{ animation: "spinSun 1s linear infinite" }} /> Menganalisis...</>) : (<>Lanjut <Check size={26} /></>)}
             </motion.button>
           </div>
         </motion.div>
@@ -432,9 +483,9 @@ function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onN
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 16px", zIndex: 10 }}
+      style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: "16px 16px 0", zIndex: 10, overflowY: "auto" }}
     >
-      <div style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", padding: "24px 20px", borderRadius: 32, boxShadow: "0 8px 24px rgba(0,0,0,0.06), inset 0 2px 0 white", width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", padding: "24px 20px", borderRadius: 32, boxShadow: "0 8px 24px rgba(0,0,0,0.06), inset 0 2px 0 white", width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", alignItems: "center", marginTop: "auto", marginBottom: "auto" }}>
           {/* Stars */}
           <div style={{ display: "flex", gap: 10, marginBottom: 24, alignItems: "center" }}>
             {[1, 2, 3].map((starIdx) => (

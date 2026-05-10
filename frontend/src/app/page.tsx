@@ -565,6 +565,7 @@ export default function HomePage() {
                       total_salah: result.totalSalah,
                       rata_waktu: result.rataWaktu,
                       detail_error: result.detailError,
+                      dyslexia_assessment: result.dyslexiaAssessment || null,
                     });
 
                     setLevels(prev => {
