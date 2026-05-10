@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Check, X, Star, Clock, ArrowRight, Target, Pencil, RefreshCw, Sparkles, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { Howl, Howler } from "howler";
-import { predictFromCanvas, predictBatch, assessDyslexia, type DyslexiaPrediction, type DyslexiaAssessment } from "@/lib/dyslexiaApi";
+import { predictBatch, assessDyslexia, type DyslexiaAssessment } from "@/lib/dyslexiaApi";
 
 export interface MiniGameResult {
   stars: number;
