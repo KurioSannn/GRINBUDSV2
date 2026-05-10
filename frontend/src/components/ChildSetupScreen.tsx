@@ -165,7 +165,6 @@ export function ChildSetupScreen({ onFinish }: ChildSetupProps) {
   const [hobbies, setHobbies] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0].id);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const activeAvatar = AVATARS.find(a => a.id === selectedAvatar)!;
   const isFormValid = name && age && gender && schoolClass && difficulty;
@@ -176,8 +175,7 @@ export function ChildSetupScreen({ onFinish }: ChildSetupProps) {
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
-      setShowSuccess(true);
-      setTimeout(() => onFinish(selectedAvatar), 3000);
+      onFinish(selectedAvatar);
     }, 1500);
   };
 
@@ -190,7 +188,6 @@ export function ChildSetupScreen({ onFinish }: ChildSetupProps) {
         borderRadius: "50px",
       }}>
         <AnimatePresence mode="wait">
-          {!showSuccess ? (
             <motion.div
               key="setup-form"
               initial={{ opacity: 0, x: 40 }}
@@ -317,81 +314,6 @@ export function ChildSetupScreen({ onFinish }: ChildSetupProps) {
                 </motion.button>
               </div>
             </motion.div>
-          ) : (
-            <motion.div
-              key="success-splash"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
-              style={{
-                flex: 1, display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                padding: 24, textAlign: "center",
-                background: "linear-gradient(155deg, #f0fde4 0%, #c8f59a 50%, #d8f5a0 100%)",
-              }}
-            >
-              {/* Confetti */}
-              {["#FFD93D", "#FF6B9D", "#1CB0F6", "#CE82FF", "#FF9600", "#58CC02"].map((color, i) => (
-                <motion.div
-                  key={i}
-                  style={{
-                    position: "absolute",
-                    left: `${10 + i * 15}%`, top: "15%",
-                    width: 10, height: 10,
-                    borderRadius: i % 2 === 0 ? "50%" : "2px",
-                    background: color,
-                  }}
-                  animate={{ y: [0, 300], opacity: [1, 0], rotate: [0, 360] }}
-                  transition={{ duration: 2 + i * 0.3, delay: i * 0.15, repeat: Infinity, repeatDelay: 1 }}
-                />
-              ))}
-
-              <motion.div
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}
-                style={{
-                  width: 140, height: 140,
-                  background: activeAvatar.bg, borderRadius: "50%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: `0 16px 48px ${activeAvatar.ringColor}44, 0 0 0 6px white, 0 0 0 9px ${activeAvatar.ringColor}33`,
-                  marginBottom: 28,
-                }}
-              >
-                <div style={{ width: 90, height: 90 }}>{activeAvatar.icon}</div>
-              </motion.div>
-
-              <motion.h1
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 36, color: "#3C3C3C", margin: "0 0 12px 0", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}
-              >
-                Siap Bertualang,<br />{name}! <Sparkles size={28} color="#FFD93D" fill="#FFD93D" />
-              </motion.h1>
-
-              <motion.p
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, color: "#555", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 6 }}
-              >
-                <Star size={16} color="#58CC02" fill="#58CC02" /> Membuka peta sihir...
-              </motion.p>
-
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ delay: 1, duration: 2, ease: "easeInOut" }}
-                style={{
-                  height: 8, borderRadius: 4, background: "#58CC02",
-                  width: 220, marginTop: 32,
-                  transformOrigin: "left",
-                  boxShadow: "0 4px 0 #46A302",
-                }}
-              />
-            </motion.div>
-          )}
         </AnimatePresence>
       </div>
     </div>
