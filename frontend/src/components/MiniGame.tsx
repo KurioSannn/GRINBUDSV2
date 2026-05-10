@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 export interface MiniGameResult {
   stars: number;
@@ -163,11 +163,21 @@ function DrawingGame({ onComplete }: { onComplete: (res: MiniGameResult) => void
 
   useEffect(() => {
     setStartTime(Date.now());
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    }
+    const timer = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      const width = canvas.offsetWidth;
+      const height = canvas.offsetHeight;
+      
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }, 350); // tunggu framer motion selesai
+    return () => clearTimeout(timer);
   }, [currentIndex]);
 
   const clearCanvas = () => {
@@ -182,9 +192,11 @@ function DrawingGame({ onComplete }: { onComplete: (res: MiniGameResult) => void
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / (rect.width * window.devicePixelRatio);
+    const scaleY = canvas.height / (rect.height * window.devicePixelRatio);
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
     };
   };
 
@@ -249,9 +261,9 @@ function DrawingGame({ onComplete }: { onComplete: (res: MiniGameResult) => void
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
           style={{ flex: 1, display: "flex", flexDirection: "column" }}
         >
@@ -315,7 +327,7 @@ function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onN
     return "Yay! Kamu sudah mencoba dengan baik!";
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { 
       opacity: 1, 
@@ -324,12 +336,12 @@ function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onN
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } }
   };
 
-  const starVariants = {
+  const starVariants: Variants = {
     hidden: { opacity: 0, scale: 0, rotate: -45 },
     visible: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring", stiffness: 200, damping: 15 } }
   };
@@ -345,7 +357,7 @@ function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onN
         variants={{
           hidden: { opacity: 0, y: 20 },
           visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.15 } }
-        }} 
+        } as Variants} 
         style={{ display: "flex", gap: 16, marginBottom: 40, alignItems: "center" }}
       >
         {[1, 2, 3].map((starIdx) => (

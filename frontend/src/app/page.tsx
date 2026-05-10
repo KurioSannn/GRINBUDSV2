@@ -8,6 +8,7 @@ import { AuthScreen } from "@/components/AuthScreen";
 import { ChildSetupScreen } from "@/components/ChildSetupScreen";
 import MiniGame from "@/components/MiniGame";
 import { supabase } from "@/lib/supabase";
+import { DashboardOrtu } from "@/components/DashboardOrtu";
 
 // ── DATA GENERATOR: 32 Levels ──
 const generateLevelsData = () => {
@@ -343,7 +344,7 @@ function LevelNode({ level, position, onClick }: {
 }
 
 // ── SIDE DRAWER (FIX BUG 2: dikembalikan) ──
-function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function SideDrawer({ isOpen, onClose, onMenuClick }: { isOpen: boolean; onClose: () => void; onMenuClick?: (label: string) => void }) {
   const menuItems = [
     { label: "Profil Anak",    color: "#FF6B9D" },
     { label: "Pencapaian",     color: "#FFD93D" },
@@ -372,7 +373,10 @@ function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
             </div>
             <div style={{ padding: "24px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
               {menuItems.map((item, i) => (
-                <button key={i} onClick={onClose} style={{ width: "100%", display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderRadius: "20px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
+                <button key={i} onClick={() => {
+                  if (onMenuClick) onMenuClick(item.label);
+                  onClose();
+                }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderRadius: "20px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
                   <div style={{ width: 40, height: 40, borderRadius: "12px", background: `${item.color}15`, color: item.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {SVG_ICONS.profile}
                   </div>
@@ -396,6 +400,7 @@ export default function HomePage() {
   const [selected, setSelected]             = useState<(typeof levelsData)[0] | null>(null);
   const [mounted, setMounted]               = useState(false);
   const [isDrawerOpen, setIsDrawerOpen]     = useState(false);
+  const [showDashboardOrtu, setShowDashboardOrtu] = useState(false);
   const [playingLevel, setPlayingLevel]     = useState<number | null>(null);
   const [levels, setLevels]                 = useState(levelsData);
   const [showHeader, setShowHeader]         = useState(true);
@@ -466,6 +471,7 @@ export default function HomePage() {
   }, []);
 
   const totalStars = levels.reduce((acc, l) => acc + l.stars, 0);
+  const currentLevel = levels.filter(l => l.completed).length + 1;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4ff", padding: "20px" }}>
@@ -526,7 +532,13 @@ export default function HomePage() {
         <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,0.18), 0 0 0 8px #e0e0f0", borderRadius: "50px" }}>
 
           {/* FIX BUG 2: SideDrawer dikembalikan */}
-          <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+          <SideDrawer 
+            isOpen={isDrawerOpen} 
+            onClose={() => setIsDrawerOpen(false)} 
+            onMenuClick={(label) => {
+              if (label === "Dashboard Ortu") setShowDashboardOrtu(true);
+            }} 
+          />
 
           {/* FLOATING HEADER */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
@@ -705,6 +717,13 @@ export default function HomePage() {
               />
             )}
           </AnimatePresence>
+
+          {/* DASHBOARD ORTU OVERLAY */}
+          <DashboardOrtu 
+            isOpen={showDashboardOrtu} 
+            onClose={() => setShowDashboardOrtu(false)} 
+            currentLevel={currentLevel}
+          />
         </div>
       )}
     </div>
