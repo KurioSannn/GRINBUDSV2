@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
-    "@types/howler": "^2.2.12",
     "framer-motion": "^12.38.0",
     "howler": "^2.2.4",
     "lottie-react": "^2.4.1",
@@ -21,6 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/howler": "^2.2.12",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

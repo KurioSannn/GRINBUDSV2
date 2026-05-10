@@ -566,7 +566,7 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
     };
 
     const bgm = audioRefs.current.bgm;
-    if (bgm && !Howler._muted) {
+    if (bgm && !isMuted) {
       bgm.play();
       bgm.fade(0, 0.25, 1000);
     }
@@ -593,7 +593,7 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
 
   const playSound = (name: string) => {
     if (!isMuted && audioRefs.current[name as keyof typeof audioRefs.current]) {
-      audioRefs.current[name as keyof typeof audioRefs.current].play();
+      audioRefs.current[name as keyof typeof audioRefs.current]?.play();
     }
   };
 
