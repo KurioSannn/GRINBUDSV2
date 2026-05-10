@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SplashScreen } from "@/components/SplashScreen";
 import { Onboarding } from "@/components/Onboarding";
 import { AuthScreen } from "@/components/AuthScreen";
-import { ChildSetupScreen } from "@/components/ChildSetupScreen";
+import { ChildSetupScreen, AVATARS } from "@/components/ChildSetupScreen";
+import { TransitionScreen } from "@/components/TransitionScreen";
 import MiniGame from "@/components/MiniGame";
 import { supabase } from "@/lib/supabase";
+import { User, Trophy, BarChart, Settings, PawPrint, Flower2, Sun, Leaf, Snowflake, Rocket, Star, Lock, Sparkles, Cloud, Home, Compass, Gamepad2 } from "lucide-react";
 
 // ── DATA GENERATOR: 32 Levels ──
 const generateLevelsData = () => {
@@ -40,224 +42,45 @@ const levelsData = generateLevelsData();
 
 // ── PREMIUM ICONS ──
 const SVG_ICONS = {
-  star: (color: string) => (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill={color}>
-      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-    </svg>
-  ),
-  lock: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" width="22" height="22">
-      <rect x="5" y="11" width="14" height="10" rx="2"/>
-      <path d="M8 11V7a4 4 0 018 0v4"/>
-    </svg>
-  ),
-  profile: (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  ),
+  star: (color: string) => <Star size={22} fill={color} color={color} />,
+  lock: <Lock size={22} color="white" />,
+  profile: <User size={24} color="currentColor" />,
 };
 
-// ── ORNAMEN: pure SVG + CSS keyframes (FIXED TRANSFORM OVERRIDES) ──
+// ── FLOATING DECORATIONS ──
+function FloatingDecorations({ mapHeight }: { mapHeight: number }) {
+  const sparkles = useMemo(() => Array.from({ length: 50 }, () => ({
+    x: Math.random() * 350 + 20,
+    y: Math.random() * mapHeight,
+    size: Math.random() * 6 + 4,
+    delay: Math.random() * 4,
+    duration: 2 + Math.random() * 3,
+  })), [mapHeight]);
 
-function OrnamentSemi({ x, y, size = 1, opacity = 0.7, animDelay = "0s" }: {
-  x: number; y: number; size?: number; opacity?: number; animDelay?: string;
-}) {
   return (
-    <g transform={`translate(${x}, ${y}) scale(${size})`} opacity={opacity}>
-      {/* Harus dibungkus <g> baru supaya animasi CSS tidak meng-override translate() induknya */}
-      <g style={{ animation: `semiSway 4s ease-in-out infinite`, animationDelay: animDelay, transformOrigin: "0px 0px" }}>
-        <circle cx="0" cy="0" r="5" fill="#FF6B9D" />
-        {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-          <ellipse key={i} cx="0" cy="-12" rx="4.5" ry="8"
-            fill={i % 2 === 0 ? "#FFB8D9" : "#FF9FCC"}
-            transform={`rotate(${deg})`} opacity="0.9" />
-        ))}
-        <circle cx="0" cy="0" r="3.5" fill="#FFE0EE" />
-      </g>
-    </g>
-  );
-}
-
-function LeafSemi({ x, y, rotate = 0, opacity = 0.6, animDelay = "0s" }: {
-  x: number; y: number; rotate?: number; opacity?: number; animDelay?: string;
-}) {
-  return (
-    <g transform={`translate(${x}, ${y}) rotate(${rotate})`} opacity={opacity}>
-      <g style={{ animation: `leafFloat 5s ease-in-out infinite`, animationDelay: animDelay, transformOrigin: "0px 0px" }}>
-        <ellipse cx="0" cy="0" rx="5" ry="10" fill="#6FCF97" />
-        <line x1="0" y1="-9" x2="0" y2="9" stroke="#27AE60" strokeWidth="0.8" />
-      </g>
-    </g>
-  );
-}
-
-function OrnamentPanas({ x, y, size = 1, opacity = 0.75 }: {
-  x: number; y: number; size?: number; opacity?: number;
-}) {
-  return (
-    <g transform={`translate(${x}, ${y}) scale(${size})`} opacity={opacity}>
-      <g style={{ animation: "spinSun 20s linear infinite", transformOrigin: "0px 0px" }}>
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
-          <line key={i} x1="0" y1="10" x2="0" y2="18"
-            stroke="#FFBE2E" strokeWidth={i % 2 === 0 ? "2.5" : "1.8"}
-            strokeLinecap="round" transform={`rotate(${deg})`} />
-        ))}
-      </g>
-      <circle cx="0" cy="0" r="9" fill="#FFD93D"
-        style={{ animation: "pulseSun 3s ease-in-out infinite", transformOrigin: "0px 0px" }} />
-      <circle cx="0" cy="0" r="5.5" fill="#FFE873" />
-    </g>
-  );
-}
-
-function CloudPanas({ x, y, scale = 1, opacity = 0.5, animDelay = "0s" }: {
-  x: number; y: number; scale?: number; opacity?: number; animDelay?: string;
-}) {
-  return (
-    <g transform={`translate(${x}, ${y}) scale(${scale})`} opacity={opacity}>
-      <g style={{ animation: "cloudDrift 12s ease-in-out infinite", animationDelay: animDelay, transformOrigin: "0px 0px" }}>
-        <ellipse cx="0"   cy="0"  rx="20" ry="12" fill="white" />
-        <ellipse cx="-13" cy="4"  rx="13" ry="10" fill="white" />
-        <ellipse cx="13"  cy="4"  rx="13" ry="10" fill="white" />
-        <ellipse cx="0"   cy="-6" rx="11" ry="9"  fill="white" />
-      </g>
-    </g>
-  );
-}
-
-function OrnamentGugur({ x, y, rotate = 0, color = "#E2A84B", size = 1, opacity = 0.8, animDelay = "0s" }: {
-  x: number; y: number; rotate?: number; color?: string; size?: number; opacity?: number; animDelay?: string;
-}) {
-  return (
-    <g transform={`translate(${x}, ${y}) rotate(${rotate}) scale(${size})`} opacity={opacity}>
-      <g style={{ animation: "leafFall 6s ease-in-out infinite", animationDelay: animDelay, transformOrigin: "0px 0px" }}>
-        <ellipse cx="0" cy="0" rx="9" ry="13" fill={color} />
-        <line x1="0" y1="-12" x2="0" y2="12" stroke="#8B4513" strokeWidth="1" opacity="0.4" />
-        <line x1="0" y1="-5" x2="6" y2="1"   stroke="#8B4513" strokeWidth="0.7" opacity="0.4" />
-        <line x1="0" y1="2"  x2="-6" y2="7"  stroke="#8B4513" strokeWidth="0.7" opacity="0.4" />
-      </g>
-    </g>
-  );
-}
-
-function OrnamentDingin({ x, y, size = 1, opacity = 0.7, animDelay = "0s" }: {
-  x: number; y: number; size?: number; opacity?: number; animDelay?: string;
-}) {
-  return (
-    <g transform={`translate(${x}, ${y}) scale(${size})`} opacity={opacity}>
-      <g style={{ animation: "spinSlow 15s linear infinite", animationDelay: animDelay, transformOrigin: "0px 0px" }}>
-        {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-          <line key={i} x1="0" y1="0" x2="0" y2="-18"
-            stroke="#81ECEC" strokeWidth="2" strokeLinecap="round"
-            transform={`rotate(${deg})`} />
-        ))}
-        {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-          <g key={i} transform={`rotate(${deg})`}>
-            <line x1="-4" y1="-10" x2="4" y2="-10" stroke="#00CEC9" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="-3" y1="-14" x2="3" y2="-14" stroke="#00B5B0" strokeWidth="1.2" strokeLinecap="round" />
-          </g>
-        ))}
-        <circle cx="0" cy="0" r="4" fill="#00CEC9" />
-        <circle cx="0" cy="0" r="2" fill="#81ECEC" />
-      </g>
-    </g>
-  );
-}
-
-function SnowDot({ x, y, animDelay = "0s" }: { x: number; y: number; animDelay?: string }) {
-  return (
-    <circle cx={x} cy={y} r="2.5" fill="white" opacity="0.6"
-      style={{ animation: "twinkleDot 2.5s ease-in-out infinite", animationDelay: animDelay }} />
-  );
-}
-
-// ── SEASON ORNAMENTS LAYER ──
-function SeasonOrnamentsLayer({ mapHeight }: { mapHeight: number }) {
-  return (
-    <g>
-      {/* ══ SEMI (y 2400–3100) ══ */}
-      <OrnamentSemi x={40}  y={3050} size={1.2} opacity={0.65} animDelay="0s"    />
-      <OrnamentSemi x={340} y={3000} size={0.9} opacity={0.55} animDelay="0.8s"  />
-      <OrnamentSemi x={80}  y={2900} size={1.0} opacity={0.6}  animDelay="1.5s"  />
-      <OrnamentSemi x={310} y={2820} size={1.3} opacity={0.5}  animDelay="0.3s"  />
-      <OrnamentSemi x={55}  y={2720} size={0.8} opacity={0.6}  animDelay="2.1s"  />
-      <OrnamentSemi x={355} y={2650} size={1.1} opacity={0.55} animDelay="0.6s"  />
-      <OrnamentSemi x={30}  y={2550} size={1.0} opacity={0.5}  animDelay="1.2s"  />
-      <OrnamentSemi x={330} y={2480} size={0.9} opacity={0.6}  animDelay="1.8s"  />
-      <LeafSemi x={360} y={3080} rotate={-20} opacity={0.55} animDelay="0s"    />
-      <LeafSemi x={20}  y={2980} rotate={30}  opacity={0.5}  animDelay="1.1s"  />
-      <LeafSemi x={370} y={2760} rotate={10}  opacity={0.5}  animDelay="0.5s"  />
-      <LeafSemi x={15}  y={2650} rotate={-15} opacity={0.55} animDelay="1.7s"  />
-      <LeafSemi x={365} y={2520} rotate={25}  opacity={0.5}  animDelay="0.9s"  />
-
-      {/* ══ PANAS (y 1500–2350) ══ */}
-      <OrnamentPanas x={50}  y={2350} size={1.1} opacity={0.7}  />
-      <OrnamentPanas x={345} y={2260} size={0.85} opacity={0.6} />
-      <OrnamentPanas x={35}  y={2160} size={1.0}  opacity={0.65}/>
-      <OrnamentPanas x={350} y={2060} size={1.2}  opacity={0.55}/>
-      <OrnamentPanas x={45}  y={1960} size={0.9}  opacity={0.65}/>
-      <OrnamentPanas x={340} y={1860} size={1.0}  opacity={0.6} />
-      <OrnamentPanas x={40}  y={1760} size={1.1}  opacity={0.55}/>
-      <OrnamentPanas x={355} y={1650} size={0.85} opacity={0.65}/>
-      <CloudPanas x={195} y={2300} scale={1.2} opacity={0.4}  animDelay="0s"   />
-      <CloudPanas x={80}  y={2100} scale={0.9} opacity={0.35} animDelay="3s"   />
-      <CloudPanas x={310} y={1950} scale={1.0} opacity={0.38} animDelay="6s"   />
-      <CloudPanas x={150} y={1750} scale={0.8} opacity={0.35} animDelay="1.5s" />
-      <CloudPanas x={270} y={1600} scale={1.1} opacity={0.38} animDelay="4.5s" />
-
-      {/* ══ GUGUR (y 700–1450) ══ */}
-      <OrnamentGugur x={45}  y={1450} rotate={-30} color="#E2A84B" size={1.0}  opacity={0.75} animDelay="0s"    />
-      <OrnamentGugur x={345} y={1380} rotate={20}  color="#C8802D" size={1.2}  opacity={0.7}  animDelay="1.2s"  />
-      <OrnamentGugur x={55}  y={1290} rotate={-45} color="#D4956A" size={0.9}  opacity={0.65} animDelay="0.5s"  />
-      <OrnamentGugur x={350} y={1200} rotate={15}  color="#B5652A" size={1.1}  opacity={0.75} animDelay="2s"    />
-      <OrnamentGugur x={40}  y={1100} rotate={35}  color="#E2A84B" size={0.85} opacity={0.7}  animDelay="0.8s"  />
-      <OrnamentGugur x={340} y={1010} rotate={-20} color="#C8802D" size={1.0}  opacity={0.65} animDelay="1.5s"  />
-      <OrnamentGugur x={50}  y={910}  rotate={10}  color="#A0522D" size={1.2}  opacity={0.7}  animDelay="0.3s"  />
-      <OrnamentGugur x={345} y={820}  rotate={-35} color="#E2A84B" size={0.9}  opacity={0.65} animDelay="1.8s"  />
-      <OrnamentGugur x={160} y={1430} rotate={55}  color="#D4956A" size={0.6}  opacity={0.5}  animDelay="0.7s"  />
-      <OrnamentGugur x={230} y={1250} rotate={-60} color="#C8802D" size={0.55} opacity={0.45} animDelay="2.3s"  />
-      <OrnamentGugur x={170} y={1050} rotate={40}  color="#B5652A" size={0.65} opacity={0.5}  animDelay="1.1s"  />
-      <OrnamentGugur x={220} y={850}  rotate={-50} color="#E2A84B" size={0.6}  opacity={0.45} animDelay="0.4s"  />
-
-      {/* ══ DINGIN (y 0–700) ══ */}
-      <OrnamentDingin x={50}  y={680} size={1.1}  opacity={0.65} animDelay="0s"    />
-      <OrnamentDingin x={340} y={610} size={0.9}  opacity={0.6}  animDelay="2s"    />
-      <OrnamentDingin x={40}  y={520} size={1.2}  opacity={0.55} animDelay="1s"    />
-      <OrnamentDingin x={350} y={450} size={0.85} opacity={0.6}  animDelay="3s"    />
-      <OrnamentDingin x={45}  y={360} size={1.0}  opacity={0.65} animDelay="0.5s"  />
-      <OrnamentDingin x={345} y={290} size={1.1}  opacity={0.55} animDelay="1.5s"  />
-      <OrnamentDingin x={40}  y={200} size={0.9}  opacity={0.6}  animDelay="2.5s"  />
-      <OrnamentDingin x={350} y={130} size={1.2}  opacity={0.55} animDelay="0.8s"  />
-      <SnowDot x={100} y={650} animDelay="0s"    /><SnowDot x={270} y={620} animDelay="0.4s"  />
-      <SnowDot x={155} y={580} animDelay="0.9s"  /><SnowDot x={305} y={530} animDelay="1.3s"  />
-      <SnowDot x={90}  y={490} animDelay="0.2s"  /><SnowDot x={260} y={450} animDelay="1.7s"  />
-      <SnowDot x={130} y={410} animDelay="0.6s"  /><SnowDot x={285} y={370} animDelay="2.0s"  />
-      <SnowDot x={100} y={320} animDelay="1.1s"  /><SnowDot x={245} y={280} animDelay="0.3s"  />
-      <SnowDot x={165} y={240} animDelay="1.5s"  /><SnowDot x={295} y={200} animDelay="0.7s"  />
-      <SnowDot x={80}  y={165} animDelay="1.9s"  /><SnowDot x={230} y={140} animDelay="2.3s"  />
-      <SnowDot x={150} y={100} animDelay="0.5s"  />
-    </g>
-  );
-}
-
-// ── SEASON DIVIDER ──
-function SeasonDivider({ y, label, color }: { y: number; label: string; color: string }) {
-  return (
-    <g>
-      <line x1="0" y1={y} x2="390" y2={y} stroke={color} strokeWidth="1.5" opacity="0.35" strokeDasharray="6,6" />
-      <rect x="10" y={y - 14} width={label.length * 9 + 20} height="22" rx="11" fill={color} opacity="0.18" />
-      <text x="20" y={y + 4} fontFamily="'Fredoka One', cursive" fontSize="12" fill={color} opacity="0.95">{label}</text>
-    </g>
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5 }}>
+      {sparkles.map((s, i) => (
+        <motion.div
+          key={i}
+          animate={{ opacity: [0.1, 0.9, 0.1], scale: [0.8, 1.2, 0.8], y: [0, -20, 0] }}
+          transition={{ duration: s.duration, repeat: Infinity, delay: s.delay, ease: "easeInOut" }}
+          style={{ 
+            position: "absolute", left: s.x, top: s.y, 
+            width: s.size, height: s.size, 
+            borderRadius: "50%", background: "white", 
+            boxShadow: "0 0 12px rgba(255,255,255,0.9)" 
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
 // ── MAP CONFIG ──
-const MAP_HEIGHT = 3200;
+const MAP_HEIGHT = 4400;
 const generatePathPositions = () => {
   return Array.from({ length: 32 }, (_, i) => {
-    const y = MAP_HEIGHT - (i * 95) - 150;
+    const y = MAP_HEIGHT - (i * 125) - 150;
     let x = 195;
     if (i % 4 === 1) x = 110;
     if (i % 4 === 3) x = 280;
@@ -271,9 +94,7 @@ function Stars({ count, size = 11 }: { count: number; size?: number }) {
   return (
     <div style={{ display: "flex", gap: 1 }}>
       {[1, 2, 3].map((s) => (
-        <svg key={s} viewBox="0 0 24 24" width={size} height={size} fill={s <= count ? "#FFD93D" : "rgba(255,255,255,0.2)"}>
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-        </svg>
+          <Star key={s} size={size} fill={s <= count ? "#FFD93D" : "#E0E0E0"} color={s <= count ? "#FFD93D" : "#E0E0E0"} />
       ))}
     </div>
   );
@@ -287,68 +108,105 @@ function LevelNode({ level, position, onClick }: {
 }) {
   const isCurrent   = level.unlocked && !level.completed;
   const isCompleted = level.completed;
+  const isLocked    = !level.unlocked;
+
+  const btnBg = isCompleted ? "linear-gradient(180deg, #FF9FCC 0%, #FF6B9D 100%)" : isCurrent ? "linear-gradient(180deg, #FFD93D 0%, #FF9600 100%)" : "linear-gradient(180deg, #FFFFFF 0%, #E8E8E8 100%)";
+  const btnShadow = isCompleted ? "0 8px 0 #D44C7D, 0 12px 24px rgba(255,107,157,0.4)" : isCurrent ? "0 8px 0 #D97B29, 0 12px 24px rgba(255,150,0,0.4)" : "0 8px 0 #D0D0D0, 0 10px 16px rgba(0,0,0,0.08)";
+  const innerShadow = isCompleted ? "inset 0 -6px 0 rgba(0,0,0,0.2), inset 0 6px 0 rgba(255,255,255,0.6)" : isCurrent ? "inset 0 -6px 0 rgba(0,0,0,0.2), inset 0 6px 0 rgba(255,255,255,0.6)" : "inset 0 -6px 0 rgba(0,0,0,0.08), inset 0 6px 0 #FFFFFF";
 
   return (
     <motion.div
       initial={{ scale: 0, opacity: 0 }}
       whileInView={{ scale: 1, opacity: 1 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ type: "spring", stiffness: 280, damping: 22 }}
       style={{
         position: "absolute",
         left: `${position.x}px`,
         top: `${position.y}px`,
         transform: "translate(-50%, -50%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 4,
-        zIndex: 10,
+        zIndex: isCurrent ? 20 : 10,
       }}
     >
-      {isCurrent && (
-        <motion.div
-          animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          style={{ position: "absolute", width: 70, height: 70, borderRadius: "50%", border: `3px solid ${level.color}`, pointerEvents: "none" }}
-        />
-      )}
-      <motion.button
-        whileHover={level.unlocked ? { scale: 1.1 } : {}}
-        whileTap={level.unlocked ? { scale: 0.9 } : {}}
-        onClick={onClick}
-        disabled={!level.unlocked}
+      <motion.div
+        animate={isCurrent ? { y: [0, -6, 0] } : {}}
+        transition={isCurrent ? { duration: 2.5, repeat: Infinity, ease: "easeInOut" } : {}}
         style={{
-          width: 56, height: 56, borderRadius: "50%", border: "none",
-          cursor: level.unlocked ? "pointer" : "not-allowed",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: isCompleted ? level.color : isCurrent ? level.bg : "#eeeef5",
-          boxShadow: isCurrent
-            ? `0 0 0 4px white, 0 10px 20px ${level.color}44`
-            : "0 4px 12px rgba(0,0,0,0.08)",
-          color: isCompleted ? "white" : level.unlocked ? level.color : "#bbb",
-          position: "relative", zIndex: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          position: "relative",
         }}
       >
-        {level.unlocked ? SVG_ICONS.star(isCompleted ? "white" : level.color) : SVG_ICONS.lock}
-      </motion.button>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-        <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: 14, color: "white", textShadow: "0 2px 4px rgba(0,0,0,0.5)", lineHeight: 1 }}>
-          {level.id}
-        </span>
-        {level.unlocked && <Stars count={level.stars} />}
-      </div>
+        {isCurrent && (
+          <>
+            {/* Clean, Soft Main Glow Aura */}
+            <motion.div
+              animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              style={{ position: "absolute", width: 84, height: 84, borderRadius: "50%", background: "rgba(255,217,61,0.3)", top: -6, pointerEvents: "none", zIndex: -3, filter: "blur(4px)" }}
+            />
+            {/* Elegant Expanding Ripple Ring 1 */}
+            <motion.div
+              animate={{ scale: [1, 1.5], opacity: [0.8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+              style={{ position: "absolute", width: 72, height: 72, borderRadius: "50%", border: "4px solid #FF9600", top: 0, pointerEvents: "none", zIndex: -2 }}
+            />
+            {/* Elegant Expanding Ripple Ring 2 */}
+            <motion.div
+              animate={{ scale: [1, 1.5], opacity: [0.8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 1 }}
+              style={{ position: "absolute", width: 72, height: 72, borderRadius: "50%", border: "4px solid rgba(255,217,61,0.9)", top: 0, pointerEvents: "none", zIndex: -2 }}
+            />
+            
+            {/* Floating Sparkles around the node */}
+            <motion.div animate={{ y: [0, -8, 0], opacity: [0, 1, 0], scale: [0.6, 1, 0.6] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} style={{ position: "absolute", top: -10, left: -15, zIndex: 5, pointerEvents: "none" }}>
+              <Sparkles size={16} color="#FFD93D" fill="#FFD93D" />
+            </motion.div>
+            <motion.div animate={{ y: [0, -6, 0], opacity: [0, 1, 0], scale: [0.6, 1, 0.6] }} transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1 }} style={{ position: "absolute", top: 15, right: -20, zIndex: 5, pointerEvents: "none" }}>
+              <Star size={12} color="white" fill="white" />
+            </motion.div>
+          </>
+        )}
+        
+        <motion.button
+          whileHover={level.unlocked ? { scale: 1.05, y: -2 } : {}}
+          whileTap={level.unlocked ? { scale: 0.95, y: 4 } : {}}
+          onClick={onClick}
+          disabled={isLocked}
+          className={isLocked ? "" : "btn-press"}
+          style={{
+            width: 72, height: 72, borderRadius: "50%", border: "none",
+            cursor: isLocked ? "not-allowed" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: btnBg,
+            boxShadow: `${btnShadow}, ${innerShadow}`,
+            position: "relative", zIndex: 2,
+          }}
+        >
+          {isLocked
+            ? <Lock size={24} color="#A0A0A0" fill="#A0A0A0" opacity={0.7} style={{ filter: "drop-shadow(0px 2px 0px rgba(0,0,0,0.1))" }} />
+            : <Star size={26} fill="white" color="white" style={{ filter: "drop-shadow(0px 2px 0px rgba(0,0,0,0.15))" }} />
+          }
+        </motion.button>
+        <div style={{ background: "white", borderRadius: 16, padding: "4px 16px", marginTop: -16, zIndex: 5, boxShadow: "0 6px 16px rgba(0,0,0,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+          <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 16, color: btnBg, lineHeight: 1 }}>
+            {level.id}
+          </span>
+          {isCompleted && <Stars count={level.stars} size={10} />}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
 
-// ── SIDE DRAWER (FIX BUG 2: dikembalikan) ──
+// ── SIDE DRAWER ──
 function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const menuItems = [
-    { label: "Profil Anak",    color: "#FF6B9D" },
-    { label: "Pencapaian",     color: "#FFD93D" },
-    { label: "Dashboard Ortu", color: "#A29BFE" },
-    { label: "Pengaturan",     color: "#00CEC9" },
+    { label: "Profil Anak", color: "#58CC02", icon: <User size={20} /> },
+    { label: "Pencapaian",  color: "#FFD93D", icon: <Trophy size={20} /> },
+    { label: "Dashboard Ortu", color: "#1CB0F6", icon: <BarChart size={20} /> },
+    { label: "Pengaturan", color: "#CE82FF", icon: <Settings size={20} /> },
   ];
   return (
     <AnimatePresence>
@@ -357,27 +215,32 @@ function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", zIndex: 150 }}
+            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", zIndex: 150 }}
           />
           <motion.div
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "80%", background: "white", zIndex: 160, borderRadius: "40px 0 0 40px", boxShadow: "-10px 0 40px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column" }}
+            transition={{ type: "spring", damping: 26, stiffness: 220 }}
+            style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "78%", background: "white", zIndex: 160, borderRadius: "36px 0 0 36px", boxShadow: "-12px 0 48px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column" }}
           >
-            <div style={{ padding: "60px 24px 32px", borderBottom: "1px solid #f0f0f5", textAlign: "center" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f0f0f5", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ color: "#FF6B9D" }}>{SVG_ICONS.profile}</div>
-              </div>
-              <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, color: "#333" }}>Budi</h2>
+            {/* Profile header */}
+            <div style={{ padding: "56px 24px 28px", background: "linear-gradient(155deg,#f0fde4,#d7f5b1)", borderRadius: "36px 0 0 0", textAlign: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "white", margin: "0 auto 14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, boxShadow: "0 8px 24px rgba(88,204,2,0.2)", position: "relative", zIndex: 2, color: "#58CC02" }}><PawPrint size={36} /></div>
+              <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 26, color: "#3C3C3C", position: "relative", zIndex: 2 }}>Budi</div>
+              <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: "#777", fontWeight: 700, marginTop: 2, position: "relative", zIndex: 2 }}>Kelas 1 SD · 7 Tahun</div>
             </div>
-            <div style={{ padding: "24px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* Menu items */}
+            <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
               {menuItems.map((item, i) => (
-                <button key={i} onClick={onClose} style={{ width: "100%", display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderRadius: "20px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "12px", background: `${item.color}15`, color: item.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {SVG_ICONS.profile}
-                  </div>
-                  <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 16, color: "#444" }}>{item.label}</span>
-                </button>
+                <motion.button
+                  key={i}
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ x: 4 }}
+                  onClick={onClose}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: "18px", border: "none", background: "#F9F9F9", cursor: "pointer", textAlign: "left", transition: "background 0.2s" }}
+                >
+                  <div style={{ width: 44, height: 44, borderRadius: "16px", background: `${item.color}18`, display: "flex", alignItems: "center", justifyContent: "center", color: item.color }}>{item.icon}</div>
+                  <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 16, color: "#3C3C3C" }}>{item.label}</span>
+                </motion.button>
               ))}
             </div>
           </motion.div>
@@ -393,6 +256,9 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAuth, setShowAuth]             = useState(false);
   const [showChildSetup, setShowChildSetup] = useState(false);
+  const [userName, setUserName]             = useState("");
+  const [userAvatar, setUserAvatar]         = useState("bear");
+  const [activeTab, setActiveTab]           = useState("adventure");
   const [selected, setSelected]             = useState<(typeof levelsData)[0] | null>(null);
   const [mounted, setMounted]               = useState(false);
   const [isDrawerOpen, setIsDrawerOpen]     = useState(false);
@@ -451,16 +317,30 @@ export default function HomePage() {
     setShowChildSetup(true);
   };
 
-  const handleChildSetupFinish = () => {
+  const handleChildSetupFinish = (avatarId: string, name?: string) => {
+    if (avatarId) setUserAvatar(avatarId);
+    if (name) setUserName(name);
     setShowChildSetup(false);
   };
 
   const pathData = useMemo(() => {
+    if (pathPositions.length === 0) return "";
     let d = `M ${pathPositions[0].x} ${pathPositions[0].y}`;
     for (let i = 1; i < pathPositions.length; i++) {
-      const prev = pathPositions[i - 1];
-      const curr = pathPositions[i];
-      d += ` Q ${prev.x} ${(prev.y + curr.y) / 2}, ${curr.x} ${curr.y}`;
+      const p0 = pathPositions[i - 1];
+      const p1 = pathPositions[i];
+      // Organic curve mapping: Push control points out slightly sideways and vertically 
+      // to create a soft, bouncy fluid trail instead of a stiff mechanical wave.
+      const dx = p1.x - p0.x;
+      const dy = p1.y - p0.y;
+      
+      const cp1x = p0.x + dx * 0.15;
+      const cp1y = p0.y + dy * 0.45;
+      
+      const cp2x = p1.x - dx * 0.15;
+      const cp2y = p1.y - dy * 0.45;
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
     }
     return d;
   }, []);
@@ -468,9 +348,8 @@ export default function HomePage() {
   const totalStars = levels.reduce((acc, l) => acc + l.stars, 0);
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4ff", padding: "20px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#f0fde4 0%,#e8f7fe 50%,#f9f0ff 100%)", padding: "20px" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { display: none; }
 
@@ -520,10 +399,10 @@ export default function HomePage() {
         </AnimatePresence>
       ) : showChildSetup ? (
         <AnimatePresence>
-          <ChildSetupScreen onFinish={handleChildSetupFinish} />
+          <ChildSetupScreen onFinish={(id) => handleChildSetupFinish(id, "Pemain")} />
         </AnimatePresence>
       ) : (
-        <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,0.18), 0 0 0 8px #e0e0f0", borderRadius: "50px" }}>
+        <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 6px white, 0 0 0 9px #e0e0f0", borderRadius: "50px" }}>
 
           {/* FIX BUG 2: SideDrawer dikembalikan */}
           <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
@@ -543,13 +422,16 @@ export default function HomePage() {
                   >
                     <button
                       onClick={() => setIsDrawerOpen(true)}
-                      style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", border: "none", color: "#FF6B9D", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}
+                      className="btn-press"
+                      style={{ width: 54, height: 54, borderRadius: "50%", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", border: "none", color: "#58CC02", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 4px 0 #E0E0E0, 0 10px 24px rgba(0,0,0,0.06)" }}
                     >
-                      {SVG_ICONS.profile}
+                      <div style={{ width: 36, height: 36 }}>
+                        {AVATARS.find(a => a.id === userAvatar)?.icon || <PawPrint size={24} />}
+                      </div>
                     </button>
-                    <div style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", padding: "8px 16px", borderRadius: "20px", boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}>
-                      <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 18, color: "#FF6B9D", lineHeight: 1 }}>GrinBuds</div>
-                      <div style={{ fontSize: 9, color: "#FF9FCC", fontWeight: 900 }}>PETA PETUALANGAN</div>
+                    <div style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", padding: "10px 20px", borderRadius: "24px", boxShadow: "0 4px 0 #E0E0E0, 0 10px 24px rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 20, color: "#58CC02", lineHeight: 1 }}>GrinBuds</div>
+                      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 10, color: "#888", fontWeight: 900, letterSpacing: 0.8, marginTop: 2 }}>PETA PETUALANGAN</div>
                     </div>
                   </motion.div>
                 )}
@@ -562,61 +444,58 @@ export default function HomePage() {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: 100, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", borderRadius: 24, padding: "10px 16px", color: "#333", fontWeight: 900, display: "flex", alignItems: "center", gap: 8, pointerEvents: "auto", boxShadow: "0 8px 20px rgba(0,0,0,0.12)" }}
+                    style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(12px)", borderRadius: 24, padding: "10px 16px", color: "#3C3C3C", fontWeight: 900, display: "flex", alignItems: "center", gap: 8, pointerEvents: "auto", boxShadow: "0 4px 0 #E0E0E0, 0 10px 24px rgba(0,0,0,0.06)" }}
                   >
-                    <svg viewBox="0 0 24 24" width={20} height={20} fill="#FFD93D">
-                      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                    </svg>
-                    <span style={{ fontSize: 16 }}>{totalStars}</span>
+                    <Star size={20} fill="#FFD93D" color="#FFD93D" style={{ filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.1))" }} />
+                    <span style={{ fontSize: 18, fontFamily: "'Fredoka', sans-serif", fontWeight: 700, color: "#3C3C3C" }}>{totalStars}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
             </div>
           </div>
 
           {/* MAP - FIX BUG 1 & 4: BLOCKER DIV dihapus total.
               Level locked sudah ditangani via disabled + cursor not-allowed di LevelNode. */}
-          <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", background: "linear-gradient(180deg, #B8EEF8 0%, #8ED46A 70%, #72C245 100%)", position: "relative" }}>
+          <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", background: "linear-gradient(180deg, #E2F9DB 0%, #A5E474 40%, #75D844 100%)" }}>
             <div style={{ position: "relative", height: MAP_HEIGHT, width: "100%" }}>
 
-              <svg style={{ position: "absolute", inset: 0, overflow: "visible" }} viewBox={`0 0 390 ${MAP_HEIGHT}`}>
-                <defs>
-                  <linearGradient id="gradSemi"   x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FF6B9D" stopOpacity="0" /><stop offset="100%" stopColor="#FF6B9D" stopOpacity="1" />
-                  </linearGradient>
-                  <linearGradient id="gradPanas"  x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FF9F43" stopOpacity="0" /><stop offset="100%" stopColor="#FF9F43" stopOpacity="1" />
-                  </linearGradient>
-                  <linearGradient id="gradGugur"  x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#A29BFE" stopOpacity="0" /><stop offset="100%" stopColor="#A29BFE" stopOpacity="1" />
-                  </linearGradient>
-                  <linearGradient id="gradDingin" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00CEC9" stopOpacity="1" /><stop offset="100%" stopColor="#00CEC9" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
+              {/* Animated Environmental Details */}
+              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+                {pathPositions.map((pos, i) => (
+                  <React.Fragment key={i}>
+                    {i % 4 === 0 && (
+                      <motion.div style={{ position: "absolute", top: pos.y + 40, left: pos.x > 195 ? 40 : 330 }} animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+                        <Flower2 size={24} color="#FF9FCC" fill="#FF9FCC" style={{ filter: "drop-shadow(0 4px 6px rgba(255,107,157,0.3))" }} />
+                      </motion.div>
+                    )}
+                    {i % 3 === 0 && (
+                      <motion.div style={{ position: "absolute", top: pos.y - 60, left: pos.x > 195 ? 320 : 50 }} animate={{ x: [0, 10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+                        <Cloud size={40} color="white" fill="white" opacity={0.6} />
+                      </motion.div>
+                    )}
+                    {i % 5 === 0 && (
+                      <motion.div style={{ position: "absolute", top: pos.y + 10, left: pos.x > 195 ? 330 : 60 }} animate={{ y: [0, -8, 0], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
+                        <Sparkles size={20} color="#FFD93D" fill="#FFD93D" />
+                      </motion.div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
 
-                {/* Zone tints */}
-                <rect x="0" y={MAP_HEIGHT - 800}  width="390" height="800" fill="url(#gradSemi)"   opacity="0.18" />
-                <rect x="0" y={MAP_HEIGHT - 1600} width="390" height="800" fill="url(#gradPanas)"  opacity="0.18" />
-                <rect x="0" y={MAP_HEIGHT - 2400} width="390" height="800" fill="url(#gradGugur)"  opacity="0.18" />
-                <rect x="0" y="0" width="390" height={MAP_HEIGHT - 2400}   fill="url(#gradDingin)" opacity="0.22" />
-
-                {/* Divider label musim */}
-                <SeasonDivider y={MAP_HEIGHT - 800}  label="🌸 Musim Semi"   color="#FF6B9D" />
-                <SeasonDivider y={MAP_HEIGHT - 1600} label="☀️ Musim Panas"  color="#FF9F43" />
-                <SeasonDivider y={MAP_HEIGHT - 2400} label="🍂 Musim Gugur"  color="#A29BFE" />
-                <SeasonDivider y={160}               label="❄️ Musim Dingin" color="#00CEC9" />
-
-                {/* Ornamen musiman */}
-                <SeasonOrnamentsLayer mapHeight={MAP_HEIGHT} />
-
-                {/* Jalur utama */}
-                <path d={pathData} fill="none" stroke="#BE7741" strokeWidth="16" strokeLinecap="round" opacity="0.3" />
-                <path d={pathData} fill="none" stroke="#e8c97a" strokeWidth="6" strokeDasharray="12,12" strokeLinecap="round" />
+              <svg style={{ position: "absolute", inset: 0, overflow: "visible", filter: "drop-shadow(0px 8px 12px rgba(0,0,0,0.12))" }} viewBox={`0 0 390 ${MAP_HEIGHT}`}>
+                {/* Outer Shadow Outline */}
+                <path d={pathData} fill="none" stroke="#C5A47E" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" />
+                {/* Inner Depth Outline */}
+                <path d={pathData} fill="none" stroke="#D1B27A" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round" />
+                {/* Main Creamy Path */}
+                <path d={pathData} fill="none" stroke="#E6CD9A" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" />
+                {/* Premium Dotted Center (0 length dash with round cap creates perfect circles) */}
+                <path d={pathData} fill="none" stroke="#FFFFFF" strokeWidth="8" strokeDasharray="0, 26" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
               </svg>
 
-              {/* FIX: mounted check dikembalikan agar tidak ada hydration mismatch */}
+              <FloatingDecorations mapHeight={MAP_HEIGHT} />
+
               {mounted && pathPositions.map((pos, i) => (
                 <LevelNode
                   key={levels[i].id}
@@ -633,41 +512,43 @@ export default function HomePage() {
             {selected && (
               <div
                 onClick={() => setSelected(null)}
-                style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "flex-end" }}
+                style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "flex-end" }}
               >
                 <motion.div
                   initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 28, stiffness: 220 }}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: "100%", background: "white", borderRadius: "32px 32px 0 0", padding: "40px 24px", textAlign: "center", position: "relative" }}
+                  style={{ width: "100%", background: "white", borderRadius: "36px 36px 0 0", padding: "36px 24px 40px", textAlign: "center", position: "relative" }}
                 >
-                  {/* Ornamen kecil musim di pojok modal */}
-                  <div style={{ position: "absolute", top: 16, right: 20, opacity: 0.45 }}>
-                    <svg width="28" height="28" viewBox="-16 -16 32 32">
-                      {selected.seasonName === "Semi"   && <OrnamentSemi   x={0} y={0} size={0.85} opacity={1} />}
-                      {selected.seasonName === "Panas"  && <OrnamentPanas  x={0} y={0} size={0.85} opacity={1} />}
-                      {selected.seasonName === "Gugur"  && <OrnamentGugur  x={0} y={0} rotate={10} color="#E2A84B" size={0.9} opacity={1} />}
-                      {selected.seasonName === "Dingin" && <OrnamentDingin x={0} y={0} size={0.8}  opacity={1} />}
-                    </svg>
+                  {/* Drag handle */}
+                  <div style={{ width: 48, height: 6, borderRadius: 3, background: "#E5E5E5", margin: "0 auto 32px" }} />
+                  {/* Season icon */}
+                  <div style={{ width: 96, height: 96, borderRadius: 32, background: selected.bg, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", color: selected.color, boxShadow: `0 8px 0 ${selected.color}44, inset 0 2px 0 rgba(255,255,255,0.8)` }}>
+                    {selected.seasonName === "Semi" ? <Flower2 size={48} /> : selected.seasonName === "Panas" ? <Sun size={48} /> : selected.seasonName === "Gugur" ? <Leaf size={48} /> : <Snowflake size={48} />}
                   </div>
-                  <div style={{ width: 80, height: 80, borderRadius: 20, background: selected.bg, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", color: selected.color }}>
-                    {SVG_ICONS.star(selected.color)}
-                  </div>
-                  <h2 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: selected.color, marginBottom: 8 }}>Level {selected.id}</h2>
-                  <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#888", marginBottom: 32 }}>
-                    Tantangan: {selected.name}
+                  <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 32, color: "#3C3C3C", marginBottom: 8 }}>Level {selected.id}</h2>
+                  <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#888", marginBottom: 28, fontSize: 15, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Musim {selected.seasonName} · {selected.name}
                   </p>
-                  <button
+                  {/* Stars earned */}
+                  <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 32 }}>
+                    {[1,2,3].map(s => (
+                      <Star key={s} size={32} fill={s <= selected.stars ? "#FFD93D" : "#E5E5E5"} color={s <= selected.stars ? "#FFD93D" : "#E5E5E5"} />
+                    ))}
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.96, y: 5 }}
+                    whileHover={{ scale: 1.02 }}
                     onClick={() => { setPlayingLevel(selected.id); setSelected(null); }}
-                    style={{ width: "100%", padding: 18, borderRadius: 20, border: "none", background: selected.color, color: "white", fontFamily: "'Fredoka One', cursive", fontSize: 22, boxShadow: `0 10px 20px ${selected.color}44`, cursor: "pointer" }}
+                    style={{ width: "100%", padding: "20px", borderRadius: 24, border: "none", background: selected.color, color: "white", fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 22, boxShadow: `0 8px 0 ${selected.color}99, 0 16px 24px ${selected.color}33`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
                   >
-                    MULAI
-                  </button>
+                    MULAI! <Rocket size={24} />
+                  </motion.button>
                 </motion.div>
               </div>
             )}
           </AnimatePresence>
 
-          {/* MINIGAME OVERLAY */}
           <AnimatePresence>
             {playingLevel !== null && (
               <MiniGame
@@ -682,13 +563,11 @@ export default function HomePage() {
                       detail_error: result.detailError,
                     });
 
-                    // Update UI Map secara instan
                     setLevels(prev => {
                       const newLevels = prev.map(lvl => {
                         if (lvl.id === playingLevel) {
                           return { ...lvl, stars: Math.max(lvl.stars, result.stars), completed: true };
                         }
-                        // Buka level berikutnya
                         if (lvl.id === (playingLevel as number) + 1) {
                           return { ...lvl, unlocked: true };
                         }
@@ -705,8 +584,50 @@ export default function HomePage() {
               />
             )}
           </AnimatePresence>
+
+          <div style={{ position: "absolute", bottom: 24, left: 24, right: 24, zIndex: 150 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(16px)", borderRadius: 36, padding: "10px 24px", boxShadow: "0 8px 0 #E0E0E0, 0 16px 32px rgba(0,0,0,0.12), inset 0 2px 0 rgba(255,255,255,1)" }}>
+              <NavButton icon={<Home size={28} strokeWidth={2.5} />} active={activeTab === "home"} onClick={() => setActiveTab("home")} />
+              <NavButton icon={<Compass size={28} strokeWidth={2.5} />} active={activeTab === "adventure"} onClick={() => setActiveTab("adventure")} />
+              <NavButton icon={<Gamepad2 size={28} strokeWidth={2.5} />} active={activeTab === "minigame"} onClick={() => setActiveTab("minigame")} />
+              <NavButton icon={<User size={28} strokeWidth={2.5} />} active={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
+            </div>
+          </div>
+
         </div>
       )}
     </div>
+  );
+}
+
+function NavButton({ icon, active, onClick }: { icon: React.ReactNode, active: boolean, onClick: () => void }) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", position: "relative", width: 54, height: 54 }}
+    >
+      <motion.div 
+        animate={{ 
+          scale: active ? 1.15 : 1, 
+          y: active ? -4 : 0,
+          color: active ? "#58CC02" : "#A0A0A0",
+          filter: active ? "drop-shadow(0 4px 6px rgba(88,204,2,0.4))" : "drop-shadow(0 0px 0px rgba(0,0,0,0))"
+        }} 
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        {icon}
+      </motion.div>
+      <AnimatePresence>
+        {active && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            style={{ position: "absolute", bottom: 2, width: 6, height: 6, borderRadius: "50%", background: "#58CC02" }} 
+          />
+        )}
+      </AnimatePresence>
+    </motion.button>
   );
 }
