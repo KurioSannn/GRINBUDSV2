@@ -561,14 +561,14 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
     audioRefs.current = {
       bgm: new Howl({ src: ['/audio/bgm/minigame.mp3'], loop: true, volume: 0.25, html5: true }),
       click: new Howl({ src: ['/audio/sfx/click.mp3'], volume: 0.5, html5: true }),
-      success: new Howl({ src: ['/audio/sfx/success.mp3'], volume: 0.5, html5: true }),
+      success: new Howl({ src: ['/audio/sfx/success.mp3'], volume: 0.6, html5: true }),
       wrong: new Howl({ src: ['/audio/sfx/wrong.mp3'], volume: 0.6, html5: true }),
     };
 
     const bgm = audioRefs.current.bgm;
     if (bgm && !Howler._muted) {
       bgm.play();
-      bgm.fade(0, 0.25, 1000); 
+      bgm.fade(0, 0.25, 1000);
     }
 
     return () => {
