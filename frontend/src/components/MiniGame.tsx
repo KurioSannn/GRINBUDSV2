@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Check, X, Star, Clock, ArrowRight, Target, Pencil, RefreshCw, Sparkles } from "lucide-react";
+import { RotateCcw, Check, X, Star, Clock, ArrowRight, Target, Pencil, RefreshCw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Howl, Howler } from "howler";
 
 export interface MiniGameResult {
   stars: number;
@@ -50,7 +51,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   );
 }
 
-function MultipleChoiceGame({ level, onComplete, onClose }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void }) {
+function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
   const questions = useMemo(() =>
     Array.from({ length: 5 }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]),
   []);
@@ -68,9 +69,13 @@ function MultipleChoiceGame({ level, onComplete, onClose }: { level: number; onC
 
   const handleAnswer = (answer: string) => {
     if (feedback) return;
+    playSound?.('click');
     const timeMs = Date.now() - startTime;
     const target = questions[currentIndex];
     const isCorrect = answer === target;
+
+    if (isCorrect) playSound?.('success');
+    else playSound?.('wrong');
 
     setFeedback({ opt: answer, correct: isCorrect });
 
@@ -232,7 +237,7 @@ function MultipleChoiceGame({ level, onComplete, onClose }: { level: number; onC
 
 const DRAW_LETTERS = ["b", "d", "p", "q", "m"];
 
-function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void }) {
+function DrawingGame({ level, onComplete, onClose, playSound }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<MiniGameResult["detailError"]>([]);
   const [startTime, setStartTime] = useState(Date.now());
@@ -384,7 +389,7 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
             <motion.button
               whileTap={{ scale: 0.94, y: 4, boxShadow: "0 0 0 #E0E0E0" }}
               whileHover={{ scale: 1.02 }}
-              onClick={clearCanvas}
+              onClick={() => { playSound?.('click'); clearCanvas(); }}
               style={{
                 flex: 1, padding: "20px 14px", borderRadius: 28, border: "none",
                 background: "white", color: "#888",
@@ -398,7 +403,7 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
             <motion.button
               whileTap={{ scale: 0.94, y: 6, boxShadow: "0 0 0 #46A302" }}
               whileHover={{ scale: 1.02 }}
-              onClick={handleNext}
+              onClick={() => { playSound?.('click'); handleNext(); }}
               style={{
                 flex: 2, padding: "20px 14px", borderRadius: 28, border: "none",
                 background: "#58CC02", color: "white",
@@ -417,7 +422,7 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
   );
 }
 
-function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onNext: () => void; onRetry: () => void }) {
+function ResultScreen({ result, onNext, onRetry, playSound }: { result: MiniGameResult; onNext: () => void; onRetry: () => void; playSound?: (name: string) => void }) {
   const getFeedback = (stars: number) => {
     if (stars === 3) return { text: "Hebat!", sub: "Kamu pintar banget hari ini!", color: "#58CC02", icon: "🌟" };
     if (stars === 2) return { text: "Bagus!", sub: "Sedikit lagi jadi sempurna!", color: "#FF9600", icon: "✨" };
@@ -482,10 +487,10 @@ function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onN
 
           {/* Buttons */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
-            <motion.button whileTap={{ scale: 0.94, y: 4, boxShadow: "0 0 0 #46A302" }} whileHover={{ scale: 1.02 }} onClick={onNext} style={{ width: "100%", padding: "18px", borderRadius: 24, background: "#58CC02", border: "none", color: "white", fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 20, boxShadow: "0 6px 0 #46A302, 0 12px 20px rgba(88,204,2,0.25)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+            <motion.button whileTap={{ scale: 0.94, y: 4, boxShadow: "0 0 0 #46A302" }} whileHover={{ scale: 1.02 }} onClick={() => { playSound?.('click'); onNext(); }} style={{ width: "100%", padding: "18px", borderRadius: 24, background: "#58CC02", border: "none", color: "white", fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 20, boxShadow: "0 6px 0 #46A302, 0 12px 20px rgba(88,204,2,0.25)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
               Lanjut <ArrowRight size={20} />
             </motion.button>
-            <motion.button whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.01 }} onClick={onRetry} style={{ width: "100%", padding: "16px", borderRadius: 24, background: "transparent", border: "none", color: "#888", fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <motion.button whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.01 }} onClick={() => { playSound?.('click'); onRetry(); }} style={{ width: "100%", padding: "16px", borderRadius: 24, background: "transparent", border: "none", color: "#888", fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <RefreshCw size={18} /> Ulangi Level
             </motion.button>
           </motion.div>
@@ -498,6 +503,48 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
   const isLevel8 = level === 8;
   const [result, setResult] = useState<MiniGameResult | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRefs = useRef<{ bgm?: Howl, click?: Howl, success?: Howl, wrong?: Howl }>({});
+
+  useEffect(() => {
+    audioRefs.current = {
+      bgm: new Howl({ src: ['/audio/bgm/minigame.mp3'], loop: true, volume: 0.25, html5: true }),
+      click: new Howl({ src: ['/audio/sfx/click.mp3'], volume: 0.5, html5: true }),
+      success: new Howl({ src: ['/audio/sfx/success.mp3'], volume: 0.5, html5: true }),
+      wrong: new Howl({ src: ['/audio/sfx/wrong.mp3'], volume: 0.6, html5: true }),
+    };
+
+    const bgm = audioRefs.current.bgm;
+    if (bgm && !Howler._muted) {
+      bgm.play();
+      bgm.fade(0, 0.25, 1000); 
+    }
+
+    return () => {
+      const { bgm, click, success, wrong } = audioRefs.current;
+      if (bgm) {
+        bgm.fade(0.25, 0, 500);
+        setTimeout(() => {
+          bgm.stop();
+          bgm.unload();
+        }, 500);
+      }
+      if (click) click.unload();
+      if (success) success.unload();
+      if (wrong) wrong.unload();
+    };
+  }, []);
+
+  const toggleMute = () => {
+    Howler.mute(!isMuted);
+    setIsMuted(!isMuted);
+  };
+
+  const playSound = (name: string) => {
+    if (!isMuted && audioRefs.current[name as keyof typeof audioRefs.current]) {
+      audioRefs.current[name as keyof typeof audioRefs.current].play();
+    }
+  };
 
   return (
     <motion.div
@@ -513,6 +560,33 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
         borderRadius: 50,
       }}
     >
+      {/* Mute Toggle Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={toggleMute}
+        style={{
+          position: "absolute",
+          top: 24,
+          left: 24,
+          zIndex: 50,
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.85)",
+          backdropFilter: "blur(12px)",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#888",
+          cursor: "pointer",
+        }}
+      >
+        {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+      </motion.button>
+
       {/* Environmental Background Decorations */}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1, overflow: "hidden" }}>
         {/* Soft glowing orb */}
@@ -552,11 +626,11 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
       </div>
 
       {result ? (
-        <ResultScreen result={result} onNext={() => onFinish(result)} onRetry={() => { setResult(null); setRetryCount(c => c + 1); }} />
+        <ResultScreen result={result} onNext={() => { playSound('click'); onFinish(result); }} onRetry={() => { playSound('click'); setResult(null); setRetryCount(c => c + 1); }} playSound={playSound} />
       ) : isLevel8 ? (
-        <DrawingGame key={`draw-${retryCount}`} level={level} onComplete={setResult} onClose={() => onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] })} />
+        <DrawingGame key={`draw-${retryCount}`} level={level} onComplete={setResult} onClose={() => { playSound('click'); onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] }); }} playSound={playSound} />
       ) : (
-        <MultipleChoiceGame key={`mc-${retryCount}`} level={level} onComplete={setResult} onClose={() => onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] })} />
+        <MultipleChoiceGame key={`mc-${retryCount}`} level={level} onComplete={setResult} onClose={() => { playSound('click'); onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] }); }} playSound={playSound} />
       )}
     </motion.div>
   );
