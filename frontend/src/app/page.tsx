@@ -8,6 +8,7 @@ import { AuthScreen } from "@/components/AuthScreen";
 import { ChildSetupScreen, AVATARS } from "@/components/ChildSetupScreen";
 import { TransitionScreen } from "@/components/TransitionScreen";
 import MiniGame from "@/components/MiniGame";
+import { DashboardOrtu } from "@/components/DashboardOrtu";
 import { supabase } from "@/lib/supabase";
 import { User, Trophy, BarChart, Settings, PawPrint, Flower2, Sun, Leaf, Snowflake, Rocket, Star, Lock, Sparkles, Cloud, Home, Compass, Gamepad2 } from "lucide-react";
 
@@ -201,7 +202,7 @@ function LevelNode({ level, position, onClick }: {
 }
 
 // ── SIDE DRAWER ──
-function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function SideDrawer({ isOpen, onClose, onMenuClick }: { isOpen: boolean; onClose: () => void; onMenuClick?: (label: string) => void }) {
   const menuItems = [
     { label: "Profil Anak", color: "#58CC02", icon: <User size={20} /> },
     { label: "Pencapaian",  color: "#FFD93D", icon: <Trophy size={20} /> },
@@ -235,7 +236,10 @@ function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                   key={i}
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ x: 4 }}
-                  onClick={onClose}
+                  onClick={() => {
+                    if (onMenuClick) onMenuClick(item.label);
+                    onClose();
+                  }}
                   style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: "18px", border: "none", background: "#F9F9F9", cursor: "pointer", textAlign: "left", transition: "background 0.2s" }}
                 >
                   <div style={{ width: 44, height: 44, borderRadius: "16px", background: `${item.color}18`, display: "flex", alignItems: "center", justifyContent: "center", color: item.color }}>{item.icon}</div>
@@ -263,6 +267,7 @@ export default function HomePage() {
   const [selected, setSelected]             = useState<(typeof levelsData)[0] | null>(null);
   const [mounted, setMounted]               = useState(false);
   const [isDrawerOpen, setIsDrawerOpen]     = useState(false);
+  const [showDashboardOrtu, setShowDashboardOrtu] = useState(false);
   const [playingLevel, setPlayingLevel]     = useState<number | null>(null);
   const [levels, setLevels]                 = useState(levelsData);
   const [showHeader, setShowHeader]         = useState(true);
@@ -352,6 +357,7 @@ export default function HomePage() {
   }, []);
 
   const totalStars = levels.reduce((acc, l) => acc + l.stars, 0);
+  const currentLevel = levels.filter(l => l.completed).length + 1;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#f0fde4 0%,#e8f7fe 50%,#f9f0ff 100%)", padding: "20px" }}>
@@ -414,9 +420,6 @@ export default function HomePage() {
       ) : (
         <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 6px white, 0 0 0 9px #e0e0f0", borderRadius: "50px" }}>
 
-          {/* FIX BUG 2: SideDrawer dikembalikan */}
-          <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
-
           {/* FLOATING HEADER */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
@@ -465,8 +468,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* MAP - FIX BUG 1 & 4: BLOCKER DIV dihapus total.
-              Level locked sudah ditangani via disabled + cursor not-allowed di LevelNode. */}
           <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", background: "linear-gradient(180deg, #E2F9DB 0%, #A5E474 40%, #75D844 100%)" }}>
             <div style={{ position: "relative", height: MAP_HEIGHT, width: "100%" }}>
 
@@ -494,13 +495,9 @@ export default function HomePage() {
               </div>
 
               <svg style={{ position: "absolute", inset: 0, overflow: "visible", filter: "drop-shadow(0px 8px 12px rgba(0,0,0,0.12))" }} viewBox={`0 0 390 ${MAP_HEIGHT}`}>
-                {/* Outer Shadow Outline */}
                 <path d={pathData} fill="none" stroke="#C5A47E" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" />
-                {/* Inner Depth Outline */}
                 <path d={pathData} fill="none" stroke="#D1B27A" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round" />
-                {/* Main Creamy Path */}
                 <path d={pathData} fill="none" stroke="#E6CD9A" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" />
-                {/* Premium Dotted Center (0 length dash with round cap creates perfect circles) */}
                 <path d={pathData} fill="none" stroke="#FFFFFF" strokeWidth="8" strokeDasharray="0, 26" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
               </svg>
 
@@ -530,9 +527,7 @@ export default function HomePage() {
                   onClick={(e) => e.stopPropagation()}
                   style={{ width: "100%", background: "white", borderRadius: "36px 36px 0 0", padding: "36px 24px 40px", textAlign: "center", position: "relative" }}
                 >
-                  {/* Drag handle */}
                   <div style={{ width: 48, height: 6, borderRadius: 3, background: "#E5E5E5", margin: "0 auto 32px" }} />
-                  {/* Season icon */}
                   <div style={{ width: 96, height: 96, borderRadius: 32, background: selected.bg, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", color: selected.color, boxShadow: `0 8px 0 ${selected.color}44, inset 0 2px 0 rgba(255,255,255,0.8)` }}>
                     {selected.seasonName === "Semi" ? <Flower2 size={48} /> : selected.seasonName === "Panas" ? <Sun size={48} /> : selected.seasonName === "Gugur" ? <Leaf size={48} /> : <Snowflake size={48} />}
                   </div>
@@ -540,7 +535,6 @@ export default function HomePage() {
                   <p style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: "#888", marginBottom: 28, fontSize: 15, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Musim {selected.seasonName} · {selected.name}
                   </p>
-                  {/* Stars earned */}
                   <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 32 }}>
                     {[1,2,3].map(s => (
                       <Star key={s} size={32} fill={s <= selected.stars ? "#FFD93D" : "#E5E5E5"} color={s <= selected.stars ? "#FFD93D" : "#E5E5E5"} />
@@ -597,13 +591,24 @@ export default function HomePage() {
 
           <div style={{ position: "absolute", bottom: 24, left: 24, right: 24, zIndex: 150 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(16px)", borderRadius: 36, padding: "10px 24px", boxShadow: "0 8px 0 #E0E0E0, 0 16px 32px rgba(0,0,0,0.12), inset 0 2px 0 rgba(255,255,255,1)" }}>
-              <NavButton icon={<Home size={28} strokeWidth={2.5} />} active={activeTab === "home"} onClick={() => setActiveTab("home")} />
               <NavButton icon={<Compass size={28} strokeWidth={2.5} />} active={activeTab === "adventure"} onClick={() => setActiveTab("adventure")} />
               <NavButton icon={<Gamepad2 size={28} strokeWidth={2.5} />} active={activeTab === "minigame"} onClick={() => setActiveTab("minigame")} />
               <NavButton icon={<User size={28} strokeWidth={2.5} />} active={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
             </div>
           </div>
 
+          <SideDrawer 
+            isOpen={isDrawerOpen} 
+            onClose={() => setIsDrawerOpen(false)} 
+            onMenuClick={(label) => {
+              if (label === "Dashboard Ortu") setShowDashboardOrtu(true);
+            }}
+          />
+          <DashboardOrtu 
+            isOpen={showDashboardOrtu} 
+            onClose={() => setShowDashboardOrtu(false)} 
+            currentLevel={currentLevel}
+          />
         </div>
       )}
     </div>

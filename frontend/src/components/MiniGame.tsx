@@ -241,11 +241,21 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
 
   useEffect(() => {
     setStartTime(Date.now());
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    }
+    const timer = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      const width = canvas.offsetWidth;
+      const height = canvas.offsetHeight;
+      
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }, 350); // tunggu framer motion selesai
+    return () => clearTimeout(timer);
   }, [currentIndex]);
 
   const clearCanvas = () => {
@@ -260,7 +270,10 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
   };
 
   const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -334,7 +347,7 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.05 }}
           transition={{ duration: 0.25 }}
@@ -405,14 +418,14 @@ function DrawingGame({ level, onComplete, onClose }: { level: number; onComplete
 }
 
 function ResultScreen({ result, onNext, onRetry }: { result: MiniGameResult; onNext: () => void; onRetry: () => void }) {
-  const getMessage = (stars: number) => {
-    if (stars === 3) return { text: "Luar Biasa!", sub: "Sempurna tanpa kesalahan!", icon: <Star size={28} color="#FFD93D" fill="#FFD93D" /> };
-    if (stars === 2) return { text: "Bagus Banget!", sub: "Hampir sempurna, terus semangat!", icon: <Star size={28} color="#FF9600" fill="#FF9600" /> };
-    return { text: "Yay, Kamu Berani!", sub: "Sudah mencoba dengan baik!", icon: <Star size={28} color="#1CB0F6" fill="#1CB0F6" /> };
+  const getFeedback = (stars: number) => {
+    if (stars === 3) return { text: "Hebat!", sub: "Kamu pintar banget hari ini!", color: "#58CC02", icon: "🌟" };
+    if (stars === 2) return { text: "Bagus!", sub: "Sedikit lagi jadi sempurna!", color: "#FF9600", icon: "✨" };
+    return { text: "Yay!", sub: "Kamu sudah mencoba dengan baik!", color: "#1CB0F6", icon: "👍" };
   };
 
-  const msg = getMessage(result.stars);
-  const starColor = [null, "#FFD93D", "#FF9600", "#58CC02"][result.stars] ?? "#FFD93D";
+  const msg = getFeedback(result.stars);
+  const starColor = msg.color;
 
   return (
     <motion.div
