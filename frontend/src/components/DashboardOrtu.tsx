@@ -98,6 +98,25 @@ const getSeasonByLevel = (level: number) =>
 
 const getSeasonIndex = (key: string) => SEASONS.findIndex(s => s.key === key);
 
+interface DyslexiaAssessmentData {
+  isDyslexic: boolean;
+  overallProbability: number;
+  reversalCount: number;
+  mismatchCount: number;
+  totalAnalyzed: number;
+  riskLevel: "rendah" | "sedang" | "tinggi";
+  summary: string;
+  indicators: string[];
+  perLetterResults: Array<{
+    targetChar: string;
+    recognizedChar: string | null;
+    isReversal: boolean;
+    isMismatch: boolean;
+    probability: number;
+    confidence: number | null;
+  }>;
+}
+
 interface GameResult {
   id: string;
   level_id: number;
@@ -105,6 +124,7 @@ interface GameResult {
   total_salah: number;
   rata_waktu: number;
   detail_error: Array<{ letter: string; wrongAnswer?: string; timeMs: number }>;
+  dyslexia_assessment?: DyslexiaAssessmentData | null;
   created_at: string;
 }
 
@@ -482,24 +502,107 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                   )}
                 </section>
 
-                {/* ── INDIKATOR RISIKO ── */}
-                <section>
-                  <SectionTitle label="Indikator Risiko" color="#555" />
-                  <div style={{ background: `${risk.color}0E`, border: `1.5px solid ${risk.color}35`, borderRadius: 20, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: `0 4px 20px ${risk.color}18` }}>
-                    <div style={{ flexShrink: 0, width: 48, height: 48, borderRadius: "50%", background: `${risk.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {risk.icon}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 17, color: risk.color }}>{risk.status}</div>
-                      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 12, fontWeight: 700, color: "#888", marginTop: 4, lineHeight: 1.5 }}>{risk.desc}</div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      {["#00B894","#FDCB6E","#FF7675"].map((c, i) => (
-                        <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: risk.color === c ? c : "#e8e8e8" }}/>
-                      ))}
-                    </div>
-                  </div>
-                </section>
+                {/* ── AI ANALYSIS (from Railway API) ── */}
+                {(() => {
+                  // Gather all dyslexia assessments from game results
+                  const aiResults = data.filter(d => d.dyslexia_assessment).map(d => d.dyslexia_assessment!);
+                  const hasAiData = aiResults.length > 0;
+
+                  // Aggregate AI data
+                  const totalReversals = aiResults.reduce((s, a) => s + a.reversalCount, 0);
+                  const totalMismatches = aiResults.reduce((s, a) => s + a.mismatchCount, 0);
+                  const totalLettersAnalyzed = aiResults.reduce((s, a) => s + a.totalAnalyzed, 0);
+                  const avgProbability = aiResults.length > 0 ? aiResults.reduce((s, a) => s + a.overallProbability, 0) / aiResults.length : 0;
+
+                  // Determine overall AI risk
+                  const aiRisk = totalReversals >= 3 || avgProbability > 0.65
+                    ? { level: "tinggi" as const, color: "#FF4B4B", label: "Risiko Tinggi", desc: "AI mendeteksi pola pembalikan huruf yang konsisten. Sangat disarankan konsultasi dengan profesional.", emoji: "🔴" }
+                    : totalReversals >= 1 || avgProbability > 0.45
+                    ? { level: "sedang" as const, color: "#FF9600", label: "Perlu Perhatian", desc: "Ada beberapa pola yang perlu dipantau. Lanjutkan latihan dan perhatikan perkembangan.", emoji: "🟡" }
+                    : { level: "rendah" as const, color: "#00B894", label: "Risiko Rendah", desc: "AI tidak mendeteksi tanda-tanda signifikan disleksia. Anak menunjukkan perkembangan yang baik!", emoji: "🟢" };
+
+                  // Collect all per-letter results
+                  const allLetterResults = aiResults.flatMap(a => a.perLetterResults);
+
+                  return (
+                    <section>
+                      <SectionTitle label="🧠 Analisis AI Disleksia" color="#555" />
+                      {!hasAiData ? (
+                        <div style={{ background: "#F7F7F7", borderRadius: 20, padding: "28px 20px", textAlign: "center", border: "2px dashed #E0E0E0" }}>
+                          <div style={{ fontSize: 40, marginBottom: 12 }}>🧪</div>
+                          <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 16, color: "#888", marginBottom: 6 }}>Belum Ada Data AI</div>
+                          <div style={{ fontSize: 12, color: "#AAA", fontWeight: 700, lineHeight: 1.5 }}>Selesaikan level menulis (Level 8) untuk mendapatkan analisis AI pengenalan huruf dan deteksi disleksia.</div>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                          {/* Risk Card */}
+                          <div style={{ background: `${aiRisk.color}0E`, border: `2px solid ${aiRisk.color}30`, borderRadius: 20, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+                            <div style={{ fontSize: 36, flexShrink: 0 }}>{aiRisk.emoji}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 17, color: aiRisk.color }}>{aiRisk.label}</div>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: "#888", marginTop: 4, lineHeight: 1.5 }}>{aiRisk.desc}</div>
+                            </div>
+                          </div>
+
+                          {/* AI Stats */}
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                            <div style={{ background: "white", borderRadius: 16, padding: "14px 8px", textAlign: "center", border: "1.5px solid #f0f0f5" }}>
+                              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, color: "#1CB0F6" }}>{totalLettersAnalyzed}</div>
+                              <div style={{ fontSize: 9, color: "#AAA", fontWeight: 800, letterSpacing: 0.5, marginTop: 2 }}>HURUF DIANALISIS</div>
+                            </div>
+                            <div style={{ background: totalReversals > 0 ? "#FFF0F0" : "white", borderRadius: 16, padding: "14px 8px", textAlign: "center", border: `1.5px solid ${totalReversals > 0 ? "#FFD1D1" : "#f0f0f5"}` }}>
+                              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, color: totalReversals > 0 ? "#FF4B4B" : "#00B894" }}>{totalReversals}</div>
+                              <div style={{ fontSize: 9, color: "#AAA", fontWeight: 800, letterSpacing: 0.5, marginTop: 2 }}>PEMBALIKAN</div>
+                            </div>
+                            <div style={{ background: "white", borderRadius: 16, padding: "14px 8px", textAlign: "center", border: "1.5px solid #f0f0f5" }}>
+                              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 24, color: "#FF9600" }}>{totalMismatches}</div>
+                              <div style={{ fontSize: 9, color: "#AAA", fontWeight: 800, letterSpacing: 0.5, marginTop: 2 }}>TIDAK COCOK</div>
+                            </div>
+                          </div>
+
+                          {/* Per-letter AI results */}
+                          {allLetterResults.length > 0 && (
+                            <div style={{ background: "white", borderRadius: 20, padding: "16px", border: "1.5px solid #f0f0f5" }}>
+                              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 14, color: "#555", marginBottom: 12 }}>Detail Pengenalan Huruf</div>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                                {allLetterResults.map((r, i) => {
+                                  const bgColor = r.isReversal ? "#FF4B4B" : r.isMismatch ? "#FF9600" : "#00B894";
+                                  return (
+                                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", borderRadius: 14, background: `${bgColor}12`, border: `1.5px solid ${bgColor}30` }}>
+                                      <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: 16, color: bgColor }}>{r.targetChar}</span>
+                                      <span style={{ fontSize: 11, color: "#AAA" }}>→</span>
+                                      <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: 16, color: bgColor }}>{r.recognizedChar || "?"}</span>
+                                      {r.isReversal && <span style={{ fontSize: 12 }}>🔄</span>}
+                                      {r.confidence !== null && (
+                                        <span style={{ fontSize: 9, color: "#AAA", fontWeight: 800, marginLeft: 2 }}>{Math.round(r.confidence * 100)}%</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div style={{ display: "flex", gap: 12, marginTop: 12, fontSize: 10, color: "#BBB", fontWeight: 700 }}>
+                                <span style={{ display: "flex", alignItems: "center", gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#00B894" }}></span> Benar</span>
+                                <span style={{ display: "flex", alignItems: "center", gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF9600" }}></span> Tidak Cocok</span>
+                                <span style={{ display: "flex", alignItems: "center", gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF4B4B" }}></span> Terbalik 🔄</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Basic risk indicator (keep original) */}
+                          <div style={{ background: `${risk.color}0E`, border: `1.5px solid ${risk.color}35`, borderRadius: 20, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: `0 4px 20px ${risk.color}18` }}>
+                            <div style={{ flexShrink: 0, width: 48, height: 48, borderRadius: "50%", background: `${risk.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {risk.icon}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 14, color: risk.color }}>Penilaian Tradisional: {risk.status}</div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#AAA", marginTop: 2, lineHeight: 1.4 }}>{risk.desc}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </section>
+                  );
+                })()}
 
                 {/* ── PROGRESS CHART ── */}
                 {seasonData.length > 0 && (
