@@ -260,6 +260,7 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAuth, setShowAuth]             = useState(false);
   const [showChildSetup, setShowChildSetup] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
   const [userName, setUserName]             = useState("");
   const [userAvatar, setUserAvatar]         = useState("bear");
   const [activeTab, setActiveTab]           = useState("adventure");
@@ -326,6 +327,11 @@ export default function HomePage() {
     if (avatarId) setUserAvatar(avatarId);
     if (name) setUserName(name);
     setShowChildSetup(false);
+    setShowTransition(true);
+  };
+
+  const handleTransitionFinish = () => {
+    setShowTransition(false);
   };
 
   const pathData = useMemo(() => {
@@ -406,6 +412,10 @@ export default function HomePage() {
       ) : showChildSetup ? (
         <AnimatePresence>
           <ChildSetupScreen onFinish={(id) => handleChildSetupFinish(id, "Pemain")} />
+        </AnimatePresence>
+      ) : showTransition ? (
+        <AnimatePresence>
+          <TransitionScreen onFinish={handleTransitionFinish} userName={userName} avatarId={userAvatar} />
         </AnimatePresence>
       ) : (
         <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 6px white, 0 0 0 9px #e0e0f0", borderRadius: "50px" }}>
