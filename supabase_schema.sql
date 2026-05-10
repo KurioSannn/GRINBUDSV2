@@ -5,5 +5,6 @@ create table game_results (
   total_salah integer not null,
   rata_waktu float not null,
   detail_error jsonb,
+  dyslexia_assessment jsonb,
   created_at timestamp with time zone default now()
 );
