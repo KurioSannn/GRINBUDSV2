@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
+    "@types/howler": "^2.2.12",
     "framer-motion": "^12.38.0",
+    "howler": "^2.2.4",
     "lottie-react": "^2.4.1",
     "lucide-react": "^1.14.0",
     "next": "16.2.5",
