@@ -9,7 +9,10 @@ import { ChildSetupScreen, AVATARS } from "@/components/ChildSetupScreen";
 import { TransitionScreen } from "@/components/TransitionScreen";
 import MiniGame from "@/components/MiniGame";
 import { DashboardOrtu } from "@/components/DashboardOrtu";
+import { SettingsScreen } from "@/components/SettingsScreen";
 import { supabase } from "@/lib/supabase";
+import { getAppSettings } from "@/lib/appSettings";
+import { Howler } from "howler";
 import { User, Trophy, BarChart, Settings, PawPrint, Flower2, Sun, Leaf, Snowflake, Rocket, Star, Lock, Sparkles, Cloud, Home, Compass, Gamepad2 } from "lucide-react";
 import { MissionsScreen } from "@/components/MissionsScreen";
 import { ChildProfile } from "@/components/ChildProfile";
@@ -270,6 +273,7 @@ export default function HomePage() {
   const [mounted, setMounted]               = useState(false);
   const [isDrawerOpen, setIsDrawerOpen]     = useState(false);
   const [showDashboardOrtu, setShowDashboardOrtu] = useState(false);
+  const [showSettings, setShowSettings]     = useState(false);
   const [playingLevel, setPlayingLevel]     = useState<number | null>(null);
   const [levels, setLevels]                 = useState(levelsData);
   const [showHeader, setShowHeader]         = useState(true);
@@ -287,6 +291,11 @@ export default function HomePage() {
 
   useEffect(() => { 
     setMounted(true); 
+
+    // Terapkan setting audio yang tersimpan (global Howler)
+    const settings = getAppSettings();
+    Howler.mute(settings.audioMuted);
+
     // Ambil progres awal dari Supabase
     const fetchProgress = async () => {
       const { data, error } = await supabase.from("game_results").select("*");
@@ -336,6 +345,30 @@ export default function HomePage() {
 
   const handleTransitionFinish = () => {
     setShowTransition(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
+
+    setIsDrawerOpen(false);
+    setShowDashboardOrtu(false);
+    setShowSettings(false);
+    setSelected(null);
+    setPlayingLevel(null);
+
+    setActiveTab("adventure");
+    setUserName("");
+    setUserAvatar("bear");
+
+    setShowSplash(false);
+    setShowOnboarding(false);
+    setShowChildSetup(false);
+    setShowTransition(false);
+    setShowAuth(true);
   };
 
   const pathData = useMemo(() => {
@@ -637,12 +670,25 @@ export default function HomePage() {
             onClose={() => setIsDrawerOpen(false)} 
             onMenuClick={(label) => {
               if (label === "Dashboard Ortu") setShowDashboardOrtu(true);
+              if (label === "Pengaturan") setShowSettings(true);
             }}
           />
           <DashboardOrtu 
             isOpen={showDashboardOrtu} 
             onClose={() => setShowDashboardOrtu(false)} 
             currentLevel={currentLevel}
+          />
+
+          <SettingsScreen
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            childName={userName}
+            childAvatarId={userAvatar}
+            onOpenProfile={() => {
+              setActiveTab("profile");
+              setShowSettings(false);
+            }}
+            onSignOut={handleSignOut}
           />
         </div>
       )}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Check, X, Star, Clock, ArrowRight, Target, Pencil, RefreshCw, Sparkles, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { Howl, Howler } from "howler";
 import { predictBatch, assessDyslexia, type DyslexiaAssessment } from "@/lib/dyslexiaApi";
+import { getAppSettings, SETTINGS_EVENT, setAppSettings, type AppSettings } from "@/lib/appSettings";
 
 export interface MiniGameResult {
   stars: number;
@@ -632,6 +633,10 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
   const audioRefs = useRef<{ bgm?: Howl, click?: Howl, success?: Howl, wrong?: Howl }>({});
 
   useEffect(() => {
+    const settings = getAppSettings();
+    setIsMuted(settings.audioMuted);
+    Howler.mute(settings.audioMuted);
+
     audioRefs.current = {
       bgm: new Howl({ src: ['/audio/bgm/minigame.mp3'], loop: true, volume: 0.25, html5: true }),
       click: new Howl({ src: ['/audio/sfx/click.mp3'], volume: 0.5, html5: true }),
@@ -640,7 +645,7 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
     };
 
     const bgm = audioRefs.current.bgm;
-    if (bgm && !isMuted) {
+    if (bgm && !settings.audioMuted) {
       bgm.play();
       bgm.fade(0, 0.25, 1000);
     }
@@ -660,9 +665,30 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const evt = e as CustomEvent<AppSettings>;
+      if (!evt.detail || typeof evt.detail.audioMuted !== "boolean") return;
+
+      setIsMuted(evt.detail.audioMuted);
+      Howler.mute(evt.detail.audioMuted);
+    };
+
+    window.addEventListener(SETTINGS_EVENT, handler as EventListener);
+    return () => window.removeEventListener(SETTINGS_EVENT, handler as EventListener);
+  }, []);
+
   const toggleMute = () => {
-    Howler.mute(!isMuted);
-    setIsMuted(!isMuted);
+    const next = !isMuted;
+    Howler.mute(next);
+    setIsMuted(next);
+    setAppSettings({ audioMuted: next });
+
+    const bgm = audioRefs.current.bgm;
+    if (bgm && !next) {
+      if (!bgm.playing()) bgm.play();
+      bgm.fade(0, 0.25, 700);
+    }
   };
 
   const playSound = (name: string) => {
