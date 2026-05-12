@@ -11,12 +11,18 @@ interface ChildProfileProps {
   userAvatar: string;
   setUserAvatar: (avatar: string) => void;
   stats: UserStats;
+  initialTab?: "profile" | "achievements";
 }
 
-export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar, stats }: ChildProfileProps) {
-  const [activeTab, setActiveTab] = useState<"profile" | "achievements">("profile");
+export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar, stats, initialTab }: ChildProfileProps) {
+  const [activeTab, setActiveTab] = useState<"profile" | "achievements">(initialTab || "profile");
   const [tempName, setTempName] = useState(userName);
   const [isEditingName, setIsEditingName] = useState(false);
+
+  // Sync tab when initialTab prop changes (e.g. from side drawer navigation)
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
 
   // Get unlocked achievements
   const unlockedRewards = evaluateAchievements(stats);

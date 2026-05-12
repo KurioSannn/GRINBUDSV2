@@ -558,6 +558,7 @@ export default function HomePage() {
   const [isDrawerOpen, setIsDrawerOpen]     = useState(false);
   const [showDashboardOrtu, setShowDashboardOrtu] = useState(false);
   const [showSettings, setShowSettings]     = useState(false);
+  const [childProfileTab, setChildProfileTab] = useState<"profile" | "achievements">("profile");
   const [playingLevel, setPlayingLevel]     = useState<number | null>(null);
   const [levels, setLevels]                 = useState(levelsData);
   const [showHeader, setShowHeader]         = useState(true);
@@ -891,6 +892,7 @@ export default function HomePage() {
                 missions_completed: levels.filter(l => l.completed).length, 
                 perfect_missions: levels.filter(l => l.stars === 3).length 
               }}
+              initialTab={childProfileTab}
             />
           )}
 
@@ -986,6 +988,14 @@ export default function HomePage() {
             isOpen={isDrawerOpen} 
             onClose={() => setIsDrawerOpen(false)} 
             onMenuClick={(label) => {
+              if (label === "Profil Anak") {
+                setChildProfileTab("profile");
+                setActiveTab("profile");
+              }
+              if (label === "Pencapaian") {
+                setChildProfileTab("achievements");
+                setActiveTab("profile");
+              }
               if (label === "Dashboard Ortu") setShowDashboardOrtu(true);
               if (label === "Pengaturan") setShowSettings(true);
             }}
