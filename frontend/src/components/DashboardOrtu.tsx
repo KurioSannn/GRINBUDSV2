@@ -649,6 +649,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const [data, setData] = useState<GameResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatedFinalAssessment, setGeneratedFinalAssessment] = useState<FinalAiAssessment | null>(null);
+  const [generatedFinalAssessmentResultId, setGeneratedFinalAssessmentResultId] = useState<string | null>(null);
   const [generatingFinalAssessment, setGeneratingFinalAssessment] = useState(false);
   const [showAiDetail, setShowAiDetail] = useState(false);
 
@@ -725,7 +726,13 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const isViewingActive = viewSeasonKey === activeSeason.key;
   const p = viewSeason.primary;
 
-  const completedUniqueLevelCount = useMemo(() => new Set(data.filter((d) => d.stars > 0).map((d) => d.level_id)).size, [data]);
+  const completedResults = useMemo(() => {
+    return [...data]
+      .filter((d) => d.stars > 0)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [data]);
+  const latestCompletedResult = completedResults[0] ?? null;
+  const completedUniqueLevelCount = useMemo(() => new Set(completedResults.map((d) => d.level_id)).size, [completedResults]);
   const hasMinimumLevelsForAi = completedUniqueLevelCount >= MIN_LEVELS_FOR_AI_ANALYSIS;
   const rawAiResults = useMemo(() => data.filter((d) => d.dyslexia_assessment).map((d) => d.dyslexia_assessment!), [data]);
   const latestAiAssessment = useMemo(() => {
@@ -733,12 +740,19 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
       .filter((d) => d.dyslexia_assessment)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.dyslexia_assessment ?? null;
   }, [data]);
-  const latestStoredFinalAssessment = useMemo(() => {
+  const latestStoredFinalAssessmentResult = useMemo(() => {
     return [...data]
       .filter((d) => d.final_ai_assessment)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.final_ai_assessment ?? null;
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] ?? null;
   }, [data]);
-  const finalAssessment = latestStoredFinalAssessment ?? generatedFinalAssessment;
+  const latestStoredFinalAssessment = latestStoredFinalAssessmentResult?.final_ai_assessment ?? null;
+  const storedFinalAssessmentIsFresh = !!latestStoredFinalAssessmentResult && !!latestCompletedResult && new Date(latestStoredFinalAssessmentResult.created_at).getTime() >= new Date(latestCompletedResult.created_at).getTime();
+  const generatedFinalAssessmentIsFresh = !!generatedFinalAssessment && generatedFinalAssessmentResultId === latestCompletedResult?.id;
+  const finalAssessment = storedFinalAssessmentIsFresh
+    ? latestStoredFinalAssessment
+    : generatedFinalAssessmentIsFresh
+      ? generatedFinalAssessment
+      : null;
   const aiResults = hasMinimumLevelsForAi ? rawAiResults : [];
   const hasAiData = hasMinimumLevelsForAi && (aiResults.length > 0 || !!finalAssessment);
   const levelsRemainingForAi = Math.max(0, MIN_LEVELS_FOR_AI_ANALYSIS - completedUniqueLevelCount);
@@ -778,8 +792,18 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
     : risk;
 
   useEffect(() => {
-    if (!isOpen || !hasMinimumLevelsForAi || rawAiResults.length === 0 || latestStoredFinalAssessment || generatedFinalAssessment || generatingFinalAssessment) return;
+    // Only skip if: 
+    // - Dashboard is closed
+    // - Not enough levels (min 8)
+    // - No dyslexia analysis data at all
+    // - Already generating right now
+    // - We already HAVE a generated result in this session (to avoid infinite loops)
+    if (!isOpen || !hasMinimumLevelsForAi || rawAiResults.length === 0 || generatedFinalAssessment || generatingFinalAssessment) return;
 
+    // Check if the stored assessment is "stale" (based on level count or just allow one update per open)
+    // For now, let's allow it to run if the session's generatedFinalAssessment is null.
+    // If you want it to be even more dynamic, we could compare counts.
+    
     let cancelled = false;
     const createFinalAssessment = async () => {
       setGeneratingFinalAssessment(true);

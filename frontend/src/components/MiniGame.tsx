@@ -28,6 +28,38 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 };
 
 const LETTERS = ["b", "d", "p", "q"];
+const TOTAL_QUESTIONS = 5;
+const BASE_DRAW_LETTERS = ["b", "d", "p", "q", "m"];
+const DRAW_LETTERS_LEVEL_9_16 = ["b", "d", "p", "q", "m", "b", "d"];
+const DRAW_LETTERS_LEVEL_17_32 = ["b", "d", "p", "q", "m", "b", "d", "p", "q", "m"];
+
+type LevelQuestionPlan =
+  | { mode: "drawing"; letters: string[]; count: 0 }
+  | { mode: "choice"; letters: []; count: number };
+
+const getLevelQuestionPlan = (level: number): LevelQuestionPlan => {
+  // Level 8 is the first handwriting checkpoint.
+  if (level === 8) {
+    return { mode: "drawing", letters: BASE_DRAW_LETTERS, count: 0 };
+  }
+
+  // Level 9-16: keep reading practice dominant, but add two handwriting-only levels.
+  if (level >= 9 && level <= 16 && [10, 14].includes(level)) {
+    return { mode: "drawing", letters: DRAW_LETTERS_LEVEL_9_16, count: 0 };
+  }
+
+  // Level 17-32: handwriting becomes more frequent while each level still has one mode.
+  if (level >= 17) {
+    const levelInBlock = ((level - 17) % 8) + 1;
+    const isDrawingLevel = [1, 2, 4, 6, 8].includes(levelInBlock);
+
+    if (isDrawingLevel) {
+      return { mode: "drawing", letters: DRAW_LETTERS_LEVEL_17_32, count: 0 };
+    }
+  }
+
+  return { mode: "choice", letters: [], count: TOTAL_QUESTIONS };
+};
 
 function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
@@ -53,10 +85,10 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   );
 }
 
-function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
+function MultipleChoiceGame({ level, questionCount = TOTAL_QUESTIONS, onComplete, onClose, playSound }: { level: number; questionCount?: number; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
   const questions = useMemo(() =>
-    Array.from({ length: 5 }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]),
-  []);
+    Array.from({ length: questionCount }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]),
+  [questionCount]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<MiniGameResult["detailError"]>([]);
@@ -128,10 +160,10 @@ function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: 
          </div>
          <div>
             <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
-               <span style={{ color: "#2A3B5C" }}>Soal {currentIndex + 1} dari 5</span>
-               <span style={{ color: "#1CB0F6" }}>{5 - currentIndex} tersisa</span>
+               <span style={{ color: "#2A3B5C" }}>Soal {currentIndex + 1} dari {questions.length}</span>
+               <span style={{ color: "#1CB0F6" }}>{questions.length - currentIndex} tersisa</span>
             </div>
-            <ProgressBar current={currentIndex} total={5} />
+            <ProgressBar current={currentIndex} total={questions.length} />
          </div>
       </div>
 
@@ -252,9 +284,11 @@ function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: 
   );
 }
 
-const DRAW_LETTERS = ["b", "d", "p", "q", "m"];
-
-function DrawingGame({ level, onComplete, onClose, playSound }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
+function DrawingGame({ level, drawLetters, onComplete, onClose, playSound }: { level: number; drawLetters?: string[]; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
+  const levelDrawLetters = useMemo(() => {
+    const plan = getLevelQuestionPlan(level);
+    return drawLetters ?? (plan.mode === "drawing" ? plan.letters : BASE_DRAW_LETTERS);
+  }, [drawLetters, level]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<MiniGameResult["detailError"]>([]);
   const [startTime, setStartTime] = useState(Date.now());
@@ -335,21 +369,21 @@ function DrawingGame({ level, onComplete, onClose, playSound }: { level: number;
     snapshot.height = canvas.height;
     const ctx = snapshot.getContext("2d")!;
     ctx.drawImage(canvas, 0, 0);
-    savedCanvases.current.push({ canvas: snapshot, targetChar: DRAW_LETTERS[currentIndex] });
+    savedCanvases.current.push({ canvas: snapshot, targetChar: levelDrawLetters[currentIndex] });
   };
 
   const handleNext = async () => {
     if (isAnalyzing) return;
 
     const timeMs = Date.now() - startTime;
-    const target = DRAW_LETTERS[currentIndex];
+    const target = levelDrawLetters[currentIndex];
 
     // Save canvas snapshot (instant — no network call)
     saveCanvasSnapshot();
 
     const newResults = [...results, { letter: target, timeMs }];
 
-    if (currentIndex < DRAW_LETTERS.length - 1) {
+    if (currentIndex < levelDrawLetters.length - 1) {
       // Not the last letter — move to next instantly (no API wait!)
       clearCanvas();
       setResults(newResults);
@@ -406,10 +440,10 @@ function DrawingGame({ level, onComplete, onClose, playSound }: { level: number;
          </div>
          <div>
             <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
-               <span style={{ color: "#2A3B5C" }}>Huruf {currentIndex + 1} dari 5</span>
-               <span style={{ color: "#1CB0F6" }}>{5 - currentIndex} tersisa</span>
+               <span style={{ color: "#2A3B5C" }}>Huruf {currentIndex + 1} dari {levelDrawLetters.length}</span>
+               <span style={{ color: "#1CB0F6" }}>{levelDrawLetters.length - currentIndex} tersisa</span>
             </div>
-            <ProgressBar current={currentIndex} total={5} />
+            <ProgressBar current={currentIndex} total={levelDrawLetters.length} />
          </div>
       </div>
 
@@ -427,7 +461,7 @@ function DrawingGame({ level, onComplete, onClose, playSound }: { level: number;
                Tulis huruf ini:
             </div>
             <div style={{ fontSize: 100, fontFamily: "'Fredoka', sans-serif", fontWeight: 700, color: "#58CC02", lineHeight: 1, textShadow: "0 5px 0 rgba(88,204,2,0.15)", marginBottom: 10 }}>
-              {DRAW_LETTERS[currentIndex]}
+              {levelDrawLetters[currentIndex]}
             </div>
           </div>
 
@@ -565,8 +599,33 @@ function ResultScreen({ result, onNext, onRetry, playSound }: { result: MiniGame
   );
 }
 
+function SingleModeGame({ level, onComplete, onClose, playSound }: { level: number; onComplete: (res: MiniGameResult) => void; onClose: () => void; playSound?: (name: string) => void }) {
+  const plan = useMemo(() => getLevelQuestionPlan(level), [level]);
+
+  if (plan.mode === "drawing") {
+    return (
+      <DrawingGame
+        level={level}
+        drawLetters={plan.letters}
+        onComplete={onComplete}
+        onClose={onClose}
+        playSound={playSound}
+      />
+    );
+  }
+
+  return (
+    <MultipleChoiceGame
+      level={level}
+      questionCount={plan.count}
+      onComplete={onComplete}
+      onClose={onClose}
+      playSound={playSound}
+    />
+  );
+}
+
 export default function MiniGame({ level, onFinish }: MiniGameProps) {
-  const isLevel8 = level === 8;
   const [result, setResult] = useState<MiniGameResult | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -684,7 +743,6 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 60, background: "#a8e6b1", borderRadius: "50% 50% 0 0" }} />
            <div style={{ position: "absolute", bottom: -20, left: -20, width: "70%", height: 80, background: "#88d895", borderRadius: "50%" }} />
            <div style={{ position: "absolute", bottom: -10, right: -20, width: "60%", height: 90, background: "#70cd80", borderRadius: "50%" }} />
-           {/* Little purple/green puffy bushes */}
            <div style={{ position: "absolute", bottom: 20, right: 40, width: 40, height: 25, background: "#d3b6f4", borderRadius: "30px 30px 15px 15px" }} />
            <div style={{ position: "absolute", bottom: 15, right: 10, width: 50, height: 30, background: "#e8cfff", borderRadius: "30px 30px 15px 15px" }} />
            <div style={{ position: "absolute", bottom: 10, left: 30, width: 60, height: 35, background: "#98eaab", borderRadius: "30px 30px 15px 15px" }} />
@@ -693,10 +751,8 @@ export default function MiniGame({ level, onFinish }: MiniGameProps) {
 
       {result ? (
         <ResultScreen result={result} onNext={() => { playSound('click'); onFinish(result); }} onRetry={() => { playSound('click'); setResult(null); setRetryCount(c => c + 1); }} playSound={playSound} />
-      ) : isLevel8 ? (
-        <DrawingGame key={`draw-${retryCount}`} level={level} onComplete={setResult} onClose={() => { playSound('click'); onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] }); }} playSound={playSound} />
       ) : (
-        <MultipleChoiceGame key={`mc-${retryCount}`} level={level} onComplete={setResult} onClose={() => { playSound('click'); onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] }); }} playSound={playSound} />
+        <SingleModeGame key={`game-${retryCount}`} level={level} onComplete={setResult} onClose={() => { playSound('click'); onFinish({ stars: 0, totalSalah: 0, rataWaktu: 0, detailError: [] }); }} playSound={playSound} />
       )}
     </motion.div>
   );
