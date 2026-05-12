@@ -9,6 +9,8 @@ import { ChildSetupScreen, AVATARS } from "@/components/ChildSetupScreen";
 import { TransitionScreen } from "@/components/TransitionScreen";
 import MiniGame from "@/components/MiniGame";
 import { DashboardOrtu } from "@/components/DashboardOrtu";
+import { ChildProfile } from "@/components/ChildProfile";
+import { MissionsScreen } from "@/components/MissionsScreen";
 import { supabase } from "@/lib/supabase";
 import { User, Trophy, BarChart, Settings, PawPrint, Flower2, Sun, Leaf, Snowflake, Rocket, Star, Lock, Sparkles, Cloud, Home, Compass, Gamepad2 } from "lucide-react";
 
@@ -421,7 +423,8 @@ export default function HomePage() {
         <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 6px white, 0 0 0 9px #e0e0f0", borderRadius: "50px" }}>
 
           {/* FLOATING HEADER */}
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
+          {activeTab === "adventure" && (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               
               <AnimatePresence>
@@ -467,9 +470,11 @@ export default function HomePage() {
 
             </div>
           </div>
+          )}
 
-          <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", background: "linear-gradient(180deg, #E2F9DB 0%, #A5E474 40%, #75D844 100%)" }}>
-            <div style={{ position: "relative", height: MAP_HEIGHT, width: "100%" }}>
+          {activeTab === "adventure" && (
+            <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", background: "linear-gradient(180deg, #E2F9DB 0%, #A5E474 40%, #75D844 100%)" }}>
+              <div style={{ position: "relative", height: MAP_HEIGHT, width: "100%" }}>
 
               {/* Animated Environmental Details */}
               <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
@@ -511,8 +516,25 @@ export default function HomePage() {
                   onClick={() => levels[i].unlocked && setSelected(levels[i])}
                 />
               ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === "minigame" && (
+            <MissionsScreen 
+              stats={{ total_stars: totalStars, missions_completed: currentLevel - 1, perfect_missions: levels.filter(l => l.stars === 3).length }}
+            />
+          )}
+
+          {activeTab === "profile" && (
+            <ChildProfile 
+              userName={userName}
+              setUserName={setUserName}
+              userAvatar={userAvatar}
+              setUserAvatar={setUserAvatar}
+              stats={{ total_stars: totalStars, missions_completed: currentLevel - 1, perfect_missions: levels.filter(l => l.stars === 3).length }}
+            />
+          )}
 
           {/* MODAL */}
           <AnimatePresence>
@@ -603,6 +625,7 @@ export default function HomePage() {
             onClose={() => setIsDrawerOpen(false)} 
             onMenuClick={(label) => {
               if (label === "Dashboard Ortu") setShowDashboardOrtu(true);
+              if (label === "Profil Anak" || label === "Pencapaian") setActiveTab("profile");
             }}
           />
           <DashboardOrtu 
