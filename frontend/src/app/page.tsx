@@ -9,10 +9,10 @@ import { ChildSetupScreen, AVATARS } from "@/components/ChildSetupScreen";
 import { TransitionScreen } from "@/components/TransitionScreen";
 import MiniGame from "@/components/MiniGame";
 import { DashboardOrtu } from "@/components/DashboardOrtu";
-import { ChildProfile } from "@/components/ChildProfile";
-import { MissionsScreen } from "@/components/MissionsScreen";
 import { supabase } from "@/lib/supabase";
 import { User, Trophy, BarChart, Settings, PawPrint, Flower2, Sun, Leaf, Snowflake, Rocket, Star, Lock, Sparkles, Cloud, Home, Compass, Gamepad2 } from "lucide-react";
+import { MissionsScreen } from "@/components/MissionsScreen";
+import { ChildProfile } from "@/components/ChildProfile";
 
 // ── DATA GENERATOR: 32 Levels ──
 const generateLevelsData = () => {
@@ -295,7 +295,9 @@ export default function HomePage() {
       if (data) {
         // Cari bintang tertinggi per level
         data.forEach((row) => {
-          progressMap[row.level_id] = Math.max(progressMap[row.level_id] || 0, row.stars);
+          if (row.stars > 0) {
+            progressMap[row.level_id] = Math.max(progressMap[row.level_id] || 0, row.stars);
+          }
         });
       }
 
@@ -423,8 +425,7 @@ export default function HomePage() {
         <div style={{ width: 390, height: 844, display: "flex", flexDirection: "column", background: "white", position: "relative", overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.22), 0 0 0 6px white, 0 0 0 9px #e0e0f0", borderRadius: "50px" }}>
 
           {/* FLOATING HEADER */}
-          {activeTab === "adventure" && (
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "48px 20px 16px", zIndex: 100, pointerEvents: "none" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               
               <AnimatePresence>
@@ -454,7 +455,7 @@ export default function HomePage() {
               </AnimatePresence>
 
               <AnimatePresence>
-                {showHeader && (
+                {showHeader && activeTab === "adventure" && (
                   <motion.div
                     initial={{ x: 100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -470,59 +471,62 @@ export default function HomePage() {
 
             </div>
           </div>
-          )}
 
           {activeTab === "adventure" && (
             <div onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", background: "linear-gradient(180deg, #E2F9DB 0%, #A5E474 40%, #75D844 100%)" }}>
               <div style={{ position: "relative", height: MAP_HEIGHT, width: "100%" }}>
 
-              {/* Animated Environmental Details */}
-              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-                {pathPositions.map((pos, i) => (
-                  <React.Fragment key={i}>
-                    {i % 4 === 0 && (
-                      <motion.div style={{ position: "absolute", top: pos.y + 40, left: pos.x > 195 ? 40 : 330 }} animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
-                        <Flower2 size={24} color="#FF9FCC" fill="#FF9FCC" style={{ filter: "drop-shadow(0 4px 6px rgba(255,107,157,0.3))" }} />
-                      </motion.div>
-                    )}
-                    {i % 3 === 0 && (
-                      <motion.div style={{ position: "absolute", top: pos.y - 60, left: pos.x > 195 ? 320 : 50 }} animate={{ x: [0, 10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
-                        <Cloud size={40} color="white" fill="white" opacity={0.6} />
-                      </motion.div>
-                    )}
-                    {i % 5 === 0 && (
-                      <motion.div style={{ position: "absolute", top: pos.y + 10, left: pos.x > 195 ? 330 : 60 }} animate={{ y: [0, -8, 0], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-                        <Sparkles size={20} color="#FFD93D" fill="#FFD93D" />
-                      </motion.div>
-                    )}
-                  </React.Fragment>
+                {/* Animated Environmental Details */}
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+                  {pathPositions.map((pos, i) => (
+                    <React.Fragment key={i}>
+                      {i % 4 === 0 && (
+                        <motion.div style={{ position: "absolute", top: pos.y + 40, left: pos.x > 195 ? 40 : 330 }} animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+                          <Flower2 size={24} color="#FF9FCC" fill="#FF9FCC" style={{ filter: "drop-shadow(0 4px 6px rgba(255,107,157,0.3))" }} />
+                        </motion.div>
+                      )}
+                      {i % 3 === 0 && (
+                        <motion.div style={{ position: "absolute", top: pos.y - 60, left: pos.x > 195 ? 320 : 50 }} animate={{ x: [0, 10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+                          <Cloud size={40} color="white" fill="white" opacity={0.6} />
+                        </motion.div>
+                      )}
+                      {i % 5 === 0 && (
+                        <motion.div style={{ position: "absolute", top: pos.y + 10, left: pos.x > 195 ? 330 : 60 }} animate={{ y: [0, -8, 0], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
+                          <Sparkles size={20} color="#FFD93D" fill="#FFD93D" />
+                        </motion.div>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+
+                <svg style={{ position: "absolute", inset: 0, overflow: "visible", filter: "drop-shadow(0px 8px 12px rgba(0,0,0,0.12))" }} viewBox={`0 0 390 ${MAP_HEIGHT}`}>
+                  <path d={pathData} fill="none" stroke="#C5A47E" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={pathData} fill="none" stroke="#D1B27A" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={pathData} fill="none" stroke="#E6CD9A" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={pathData} fill="none" stroke="#FFFFFF" strokeWidth="8" strokeDasharray="0, 26" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+                </svg>
+
+                <FloatingDecorations mapHeight={MAP_HEIGHT} />
+
+                {mounted && pathPositions.map((pos, i) => (
+                  <LevelNode
+                    key={levels[i].id}
+                    level={levels[i]}
+                    position={pos}
+                    onClick={() => levels[i].unlocked && setSelected(levels[i])}
+                  />
                 ))}
-              </div>
-
-              <svg style={{ position: "absolute", inset: 0, overflow: "visible", filter: "drop-shadow(0px 8px 12px rgba(0,0,0,0.12))" }} viewBox={`0 0 390 ${MAP_HEIGHT}`}>
-                <path d={pathData} fill="none" stroke="#C5A47E" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" />
-                <path d={pathData} fill="none" stroke="#D1B27A" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round" />
-                <path d={pathData} fill="none" stroke="#E6CD9A" strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" />
-                <path d={pathData} fill="none" stroke="#FFFFFF" strokeWidth="8" strokeDasharray="0, 26" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
-              </svg>
-
-              <FloatingDecorations mapHeight={MAP_HEIGHT} />
-
-              {mounted && pathPositions.map((pos, i) => (
-                <LevelNode
-                  key={levels[i].id}
-                  level={levels[i]}
-                  position={pos}
-                  onClick={() => levels[i].unlocked && setSelected(levels[i])}
-                />
-              ))}
               </div>
             </div>
           )}
 
           {activeTab === "minigame" && (
             <MissionsScreen 
-              stats={{ total_stars: totalStars, missions_completed: currentLevel - 1, perfect_missions: levels.filter(l => l.stars === 3).length }}
+              stats={{ 
+                total_stars: totalStars, 
+                missions_completed: levels.filter(l => l.completed).length, 
+                perfect_missions: levels.filter(l => l.stars === 3).length 
+              }} 
             />
           )}
 
@@ -532,7 +536,11 @@ export default function HomePage() {
               setUserName={setUserName}
               userAvatar={userAvatar}
               setUserAvatar={setUserAvatar}
-              stats={{ total_stars: totalStars, missions_completed: currentLevel - 1, perfect_missions: levels.filter(l => l.stars === 3).length }}
+              stats={{ 
+                total_stars: totalStars, 
+                missions_completed: levels.filter(l => l.completed).length, 
+                perfect_missions: levels.filter(l => l.stars === 3).length 
+              }}
             />
           )}
 
@@ -581,21 +589,25 @@ export default function HomePage() {
                 level={playingLevel}
                 onFinish={async (result) => {
                   try {
-                    await supabase.from("game_results").insert({
-                      level_id: playingLevel,
-                      stars: result.stars,
-                      total_salah: result.totalSalah,
-                      rata_waktu: result.rataWaktu,
-                      detail_error: result.detailError,
-                      dyslexia_assessment: result.dyslexiaAssessment || null,
-                    });
+                    const completedLevel = result.stars > 0;
+
+                    if (completedLevel) {
+                      await supabase.from("game_results").insert({
+                        level_id: playingLevel,
+                        stars: result.stars,
+                        total_salah: result.totalSalah,
+                        rata_waktu: result.rataWaktu,
+                        detail_error: result.detailError,
+                        dyslexia_assessment: result.dyslexiaAssessment || null,
+                      });
+                    }
 
                     setLevels(prev => {
                       const newLevels = prev.map(lvl => {
-                        if (lvl.id === playingLevel) {
+                        if (completedLevel && lvl.id === playingLevel) {
                           return { ...lvl, stars: Math.max(lvl.stars, result.stars), completed: true };
                         }
-                        if (lvl.id === (playingLevel as number) + 1) {
+                        if (completedLevel && lvl.id === (playingLevel as number) + 1) {
                           return { ...lvl, unlocked: true };
                         }
                         return lvl;
@@ -625,7 +637,6 @@ export default function HomePage() {
             onClose={() => setIsDrawerOpen(false)} 
             onMenuClick={(label) => {
               if (label === "Dashboard Ortu") setShowDashboardOrtu(true);
-              if (label === "Profil Anak" || label === "Pencapaian") setActiveTab("profile");
             }}
           />
           <DashboardOrtu 
