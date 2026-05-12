@@ -422,12 +422,12 @@ const aiRiskLevelToRecommendation = (riskLevel?: "rendah" | "sedang" | "tinggi")
   return "";
 };
 
-function SectionTitle({ label, color }: { label: string; color: string }) {
+function SectionTitle({ label }: { label: string; color?: string }) {
   return (
-    <div style={{ marginBottom: 20, position: "relative" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+    <div style={{ marginBottom: 16, position: "relative" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <h2 style={{ 
-          fontFamily: "'Fredoka', sans-serif", 
+          fontFamily: "Fredoka, sans-serif", 
           fontSize: 22, 
           fontWeight: 800,
           color: "#3A4561", 
@@ -437,60 +437,6 @@ function SectionTitle({ label, color }: { label: string; color: string }) {
         }}>
           {label}
         </h2>
-        <motion.div
-          animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.1, 0.8] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Sparkles size={16} color={color} fill={color} opacity={0.6} />
-        </motion.div>
-      </div>
-      <div style={{ position: "relative", height: 8, display: "flex", alignItems: "center" }}>
-        {/* Soft underlying glow */}
-        <div style={{ 
-          position: "absolute", 
-          left: 0, 
-          width: 80, 
-          height: 12, 
-          background: color, 
-          filter: "blur(8px)", 
-          opacity: 0.25,
-          borderRadius: 999
-        }} />
-        
-        {/* Main decorative bar */}
-        <div style={{ 
-          position: "relative",
-          width: 64, 
-          height: 6, 
-          borderRadius: 999, 
-          background: `linear-gradient(90deg, ${color}, ${color}88)`,
-          boxShadow: `0 2px 10px ${color}40`,
-          overflow: "hidden"
-        }}>
-          {/* Shimmer effect inside the bar */}
-          <motion.div
-            animate={{ x: [-100, 200] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "40%",
-              height: "100%",
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
-            }}
-          />
-        </div>
-        
-        {/* Small glowing dot at the end */}
-        <div style={{ 
-          marginLeft: 4, 
-          width: 6, 
-          height: 6, 
-          borderRadius: "50%", 
-          background: color,
-          boxShadow: `0 0 8px ${color}`
-        }} />
       </div>
     </div>
   );
@@ -514,23 +460,17 @@ function GlassStatCard({ icon, value, label, color, shadow }: { icon: React.Reac
       }}
     >
       <div style={{ filter: `drop-shadow(0 4px 8px ${shadow})` }}>{icon}</div>
-      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 28, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 11, fontWeight: 900, color, letterSpacing: 0.6, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 28, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontFamily: "Nunito, sans-serif", fontSize: 11, fontWeight: 900, color, letterSpacing: 0.6, textTransform: "uppercase" }}>{label}</div>
     </div>
   );
 }
 
 function PremiumHeader({
-  viewSeasonKey,
-  setViewSeasonKey,
   viewSeason,
-  activeSeasonIdx,
   onClose,
 }: {
-  viewSeasonKey: string;
-  setViewSeasonKey: (key: string) => void;
   viewSeason: (typeof SEASONS)[number];
-  activeSeasonIdx: number;
   onClose: () => void;
 }) {
   return (
@@ -538,98 +478,58 @@ function PremiumHeader({
       initial={{ y: -64, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", damping: 26, stiffness: 220 }}
-      style={{ position: "relative", overflow: "hidden", background: `linear-gradient(135deg, ${viewSeason.gradientFrom}, ${viewSeason.gradientTo})`, flexShrink: 0 }}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        background: "#FFFFFF",
+        flexShrink: 0,
+        borderBottom: "1px solid #EEF2F7",
+        boxShadow: "0 8px 20px rgba(31,41,55,0.06)",
+      }}
     >
-      <div style={{ position: "absolute", inset: 0, opacity: 0.75 }}>
-        <svg width="100%" height="220" viewBox="0 0 390 220" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <linearGradient id={`hGrad-${viewSeason.key}`} x1="0" y1="0" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={viewSeason.gradientFrom} stopOpacity="0.16" />
-              <stop offset="100%" stopColor={viewSeason.gradientTo} stopOpacity="0.24" />
-            </linearGradient>
-          </defs>
-          <path d="M0,82 Q97.5,58 195,82 T390,82 L390,220 L0,220 Z" fill={`url(#hGrad-${viewSeason.key})`} opacity="0.55" />
-          {[0, 1, 2, 3].map((i) => (
-            <circle key={i} cx={56 + i * 88} cy={96 + (i % 2) * 36} r={18 + i * 7} fill="rgba(255,255,255,0.09)" style={{ animation: `headerFloat ${4 + i * 0.5}s ease-in-out infinite`, animationDelay: `${i * 0.25}s` }} />
-          ))}
-        </svg>
-      </div>
 
-      <div style={{ position: "relative", zIndex: 2, padding: "16px 16px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+      <div style={{ position: "relative", zIndex: 2, padding: "12px 16px 10px", display: "flex", alignItems: "center", gap: 12 }}>
         <motion.button
           whileTap={{ scale: 0.9 }}
-          whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.35)" }}
+          whileHover={{ backgroundColor: "#F1F5F9" }}
           onClick={onClose}
           style={{
-            width: 38,
-            height: 38,
+            width: 36,
+            height: 36,
             borderRadius: 999,
-            background: "rgba(255, 255, 255, 0.25)",
-            border: "1.5px solid rgba(255, 255, 255, 0.3)",
+            background: "#F8FAFC",
+            border: "1.5px solid #E2E8F0",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
-            backdropFilter: "blur(10px)",
             flexShrink: 0,
           }}
         >
-          <ChevronLeft size={18} color="white" strokeWidth={3} />
+          <ChevronLeft size={18} color="#334155" strokeWidth={3} />
         </motion.button>
 
-        <div style={{ textAlign: "center", flex: 1, minWidth: 0 }}>
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 20, color: "white", textShadow: "0 2px 8px rgba(0,0,0,0.15)", lineHeight: 1, marginBottom: 2 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <motion.div 
+            initial={{ opacity: 0, y: -8 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }} 
+            style={{ fontFamily: "Fredoka, sans-serif", fontSize: 26, fontWeight: 700, color: "#1E293B", lineHeight: 1.1, marginBottom: 2, letterSpacing: "-0.02em" }}
+          >
             Dashboard Ortu
           </motion.div>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ delay: 0.2 }} 
+            style={{ fontFamily: "Nunito, sans-serif", fontSize: 10, color: "#64748B", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.7 }}
+          >
             Pantau Perkembangan
           </motion.div>
         </div>
 
-        <div style={{ width: 38, height: 38, borderRadius: 999, background: "rgba(255, 255, 255, 0.25)", border: "1.5px solid rgba(255, 255, 255, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", flexShrink: 0 }}>
-          {viewSeason.icon}
-        </div>
-      </div>
-
-      <div style={{ position: "relative", zIndex: 2, padding: "0 12px 14px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, background: "rgba(0,0,0,0.08)", borderRadius: 24, padding: 6, backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.12)" }}>
-          {SEASONS.map((s, idx) => {
-            const unlocked = idx <= activeSeasonIdx;
-            const active = s.key === viewSeasonKey;
-            return (
-              <motion.button
-                key={s.key}
-                whileTap={unlocked ? { scale: 0.92 } : {}}
-                whileHover={unlocked ? { y: -2 } : {}}
-                onClick={() => unlocked && setViewSeasonKey(s.key)}
-                style={{
-                  padding: "10px 4px",
-                  borderRadius: 18,
-                  border: "none",
-                  cursor: unlocked ? "pointer" : "not-allowed",
-                  background: active ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.05)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 4,
-                  opacity: unlocked ? 1 : 0.4,
-                  boxShadow: active ? `0 8px 20px ${s.primary}25` : "none",
-                  position: "relative",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <div style={{ width: 34, height: 34, background: active ? s.bg : `${s.primary}12`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", transform: active ? "scale(1.1)" : "scale(1)", transition: "transform 0.3s ease" }}>
-                  {React.cloneElement(s.icon as React.ReactElement<{ size?: number }>, { size: 16 })}
-                </div>
-                <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 11, color: active ? s.primary : "rgba(255, 255, 255, 0.75)", letterSpacing: 0.3 }}>
-                  {s.label.split(" ").pop()}
-                </span>
-                {!unlocked && (
-                   <div style={{ position: "absolute", top: 4, right: 4 }}><Lock size={8} color="rgba(255,255,255,0.5)" /></div>
-                )}
-              </motion.button>
-            );
-          })}
+        <div style={{ width: 36, height: 36, borderRadius: 999, background: viewSeason.bg, border: `1px solid ${viewSeason.primary}22`, color: viewSeason.primary, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {React.cloneElement(viewSeason.icon as React.ReactElement<{ size?: number }>, { size: 16 })}
         </div>
       </div>
 
@@ -639,6 +539,76 @@ function PremiumHeader({
           50% { transform: translateY(-12px); }
         }
       `}</style>
+    </motion.div>
+  );
+}
+
+function SeasonSwitcher({
+  viewSeasonKey,
+  setViewSeasonKey,
+  viewSeason,
+  activeSeasonIdx,
+}: {
+  viewSeasonKey: string;
+  setViewSeasonKey: (key: string) => void;
+  viewSeason: (typeof SEASONS)[number];
+  activeSeasonIdx: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      style={{ background: "#FFFFFF", borderRadius: 22, padding: 12, border: "1.5px solid #E8EEF6", boxShadow: "0 8px 22px rgba(31,41,55,0.06)" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 10 }}>
+        <div>
+          <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 15, color: "#24304A", fontWeight: 800 }}>Pilih Musim</div>
+          <div style={{ fontSize: 11, color: "#7A879A", fontWeight: 800 }}>Sedang melihat {viewSeason.label}</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 10px", borderRadius: 999, background: viewSeason.bg, color: viewSeason.primary, fontSize: 11, fontWeight: 900 }}>
+          {React.cloneElement(viewSeason.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
+          {viewSeason.label.split(" ").pop()}
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, background: "#F1F5F9", borderRadius: 16, padding: 4, border: "1px solid #E2E8F0" }}>
+        {SEASONS.map((s, idx) => {
+          const unlocked = idx <= activeSeasonIdx;
+          const active = s.key === viewSeasonKey;
+          return (
+            <motion.button
+              key={s.key}
+              whileTap={unlocked ? { scale: 0.94 } : {}}
+              onClick={() => unlocked && setViewSeasonKey(s.key)}
+              style={{
+                minHeight: 40,
+                padding: "7px 3px",
+                borderRadius: 13,
+                border: "none",
+                cursor: unlocked ? "pointer" : "not-allowed",
+                background: active ? s.primary : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 5,
+                opacity: unlocked ? 1 : 0.45,
+                boxShadow: active ? `0 5px 12px ${s.primary}24` : "none",
+                position: "relative",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <div style={{ width: 22, height: 22, background: active ? "rgba(255,255,255,0.22)" : `${s.primary}12`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {React.cloneElement(s.icon as React.ReactElement<{ size?: number }>, { size: 12 })}
+              </div>
+              <span style={{ fontFamily: "Fredoka, sans-serif", fontWeight: 700, fontSize: 10, color: active ? "white" : "#64748B" }}>
+                {s.label.split(" ").pop()}
+              </span>
+              {!unlocked && <div style={{ position: "absolute", top: 4, right: 4 }}><Lock size={8} color="#94A3B8" /></div>}
+            </motion.button>
+          );
+        })}
+      </div>
     </motion.div>
   );
 }
@@ -855,23 +825,14 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: "100%", opacity: 0.95 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          style={{ position: "absolute", inset: 0, zIndex: 300, display: "flex", flexDirection: "column", fontFamily: "'Nunito', sans-serif", overflow: "hidden", borderRadius: "inherit", background: `linear-gradient(180deg, ${viewSeason.gradientFrom} 0%, ${viewSeason.bg} 45%, #EFF8FF 100%)` }}
+          style={{ position: "absolute", inset: 0, zIndex: 300, display: "flex", flexDirection: "column", fontFamily: "Nunito, sans-serif", overflow: "hidden", borderRadius: "inherit", background: "#F7FAFC" }}
         >
-          <SeasonalAtmosphere seasonKey={viewSeasonKey} />
-          <div style={{ position: "absolute", top: 76, right: -20, width: 250, height: 250, background: "radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0) 70%)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: 118, left: 34, width: 64, height: 22, background: "white", borderRadius: 999, opacity: 0.5, filter: "blur(2px)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: 62, right: 60, width: 84, height: 26, background: "white", borderRadius: 999, opacity: 0.42, filter: "blur(3px)", pointerEvents: "none" }} />
-
           <PremiumHeader
-            viewSeasonKey={viewSeasonKey}
-            setViewSeasonKey={setViewSeasonKey}
             viewSeason={viewSeason}
-            activeSeasonIdx={activeSeasonIdx}
             onClose={onClose}
           />
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 42px", position: "relative", zIndex: 1 }}>
-            <FloatingParticles />
+          <div style={{ flex: 1, overflowY: "auto", padding: "18px 18px 38px", position: "relative", zIndex: 1 }}>
             {loading ? (
               <div style={{ textAlign: "center", marginTop: 72 }}>
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }} style={{ display: "inline-block", marginBottom: 16 }}>
@@ -880,7 +841,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                     <path d="M12 2a10 10 0 0110 10" />
                   </svg>
                 </motion.div>
-                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: p }}>Memuat data...</div>
+                <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 16, color: p }}>Memuat data...</div>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -895,6 +856,13 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                     <GlassStatCard icon={<ChunkyShield size={34} />} value={`${Math.round(progressPercent)}%`} label="Progres" color="#9C27B0" shadow="rgba(156,39,176,0.14)" />
                   </motion.div>
                 </div>
+
+                <SeasonSwitcher
+                  viewSeasonKey={viewSeasonKey}
+                  setViewSeasonKey={setViewSeasonKey}
+                  viewSeason={viewSeason}
+                  activeSeasonIdx={activeSeasonIdx}
+                />
 
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
@@ -912,7 +880,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                 </motion.div>
 
                 <section>
-                  <SectionTitle label="Perjalanan Musim" color="#3A4561" />
+                  <SectionTitle label="Perjalanan Musim" />
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {seasonProgress.map((s, idx) => {
                       const unlocked = isSeasonUnlocked(idx);
@@ -951,10 +919,10 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 4 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: unlocked ? s.primary : "#8C93A7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.label}</span>
+                                  <span style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: unlocked ? s.primary : "#8C93A7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.label}</span>
                                   {isCurrent && <span style={{ background: "#FF9F43", color: "white", fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 999, letterSpacing: 0.5, boxShadow: "0 2px 8px rgba(255,159,67,0.35)" }}>AKTIF</span>}
                                 </div>
-                                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: unlocked ? s.primary : "#8C93A7" }}>{Math.round(pct)}%</span>
+                                <span style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: unlocked ? s.primary : "#8C93A7" }}>{Math.round(pct)}%</span>
                               </div>
                               <div style={{ fontSize: 12, color: "#73809B", fontWeight: 800 }}>Level {s.levelRange[0]}-{s.levelRange[1]} • {s.completed}/{s.total} selesai</div>
                             </div>
@@ -975,10 +943,10 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                 </section>
 
                 <section>
-                  <SectionTitle label={`Ringkasan · ${viewSeason.label}`} color={p} />
+                  <SectionTitle label={`Ringkasan · ${viewSeason.label}`} />
                   {seasonData.length === 0 ? (
                     <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 24, padding: "34px 20px", textAlign: "center", border: "1.5px solid rgba(255,255,255,0.8)", boxShadow: "0 8px 24px rgba(0,0,0,0.05)" }}>
-                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: viewSeason.primary, opacity: 0.78 }}>Belum ada data untuk musim ini</div>
+                      <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: viewSeason.primary, opacity: 0.78 }}>Belum ada data untuk musim ini</div>
                       {!isViewingActive && <div style={{ fontSize: 12, color: "#8E96A8", fontWeight: 700, marginTop: 6 }}>Selesaikan musim sebelumnya dulu!</div>}
                     </div>
                   ) : (
@@ -991,91 +959,54 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                 </section>
 
                 <section>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 10, background: "#F3E8FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333EA", boxShadow: "0 4px 10px rgba(147,51,234,0.15)" }}>
-                      <Sparkles size={18} fill="currentColor" />
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 14, background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#1D4F8D", boxShadow: "0 6px 16px rgba(29,79,141,0.12)", border: "1px solid rgba(29,79,141,0.08)" }}>
+                      <ChunkySearch size={24} />
                     </div>
-                    <SectionTitle label="Analisis AI Disleksia" color="#3A4561" />
+                    <SectionTitle label="Analisis AI Disleksia" />
                   </div>
                   {!hasAiData ? (
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: `linear-gradient(135deg, #F5F3FF, #EDE9FE)`, borderRadius: 36, padding: "56px 28px", textAlign: "center", border: "2px solid rgba(168, 85, 247, 0.12)", boxShadow: "0 20px 48px rgba(168,85,247,0.1)", position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, background: "radial-gradient(circle, rgba(196,124,253,0.15) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-                      <div style={{ position: "absolute", bottom: -40, left: -60, width: 200, height: 200, background: "radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-                      <motion.div animate={{ y: [-10, 10, -10], scale: [1, 1.05, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} style={{ marginBottom: 24, display: "inline-block", position: "relative", zIndex: 1 }}>
-                        <ChunkySearch size={64} />
-                      </motion.div>
-                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 24, color: "#5B21B6", marginBottom: 12, fontWeight: 700, position: "relative", zIndex: 1 }}>
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: "#FFFFFF", borderRadius: 24, padding: "22px 20px", textAlign: "left", border: "1.5px solid #E9D5FF", boxShadow: "0 8px 22px rgba(90,100,120,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 16, background: "#F5F3FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <ChunkySearch size={30} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: "#5B21B6", marginBottom: 6, fontWeight: 700 }}>
                         {hasMinimumLevelsForAi ? "Data AI Belum Tersedia" : "Analisis Terkunci"}
                       </div>
-                      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#7C3AED", fontWeight: 700, lineHeight: 1.6, position: "relative", zIndex: 1, maxWidth: 260, margin: "0 auto" }}>
+                      <div style={{ fontFamily: "Nunito, sans-serif", fontSize: 12, color: "#6B5B95", fontWeight: 700, lineHeight: 1.5 }}>
                         {hasMinimumLevelsForAi
                           ? "Selesaikan level menulis agar hasil analisis dari backend dapat tersimpan dan ditampilkan di sini."
                           : `Selesaikan ${levelsRemainingForAi} level lagi untuk membuka kesimpulan AI setelah minimal ${MIN_LEVELS_FOR_AI_ANALYSIS} level selesai.`}
+                      </div>
                       </div>
                     </motion.div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                       {/* HERO CARD */}
-                      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} style={{ background: `linear-gradient(135deg, ${aiRisk.color}12, ${aiRisk.color}05)`, border: `2.5px solid ${aiRisk.color}24`, borderRadius: 36, padding: "42px 28px", boxShadow: `0 20px 48px ${aiRisk.color}16`, position: "relative", overflow: "hidden", minHeight: 260 }}>
-                        {/* Background glow blobs */}
-                        <div style={{ position: "absolute", top: -80, left: -80, width: 320, height: 320, background: `radial-gradient(circle, ${aiRisk.color}25 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
-                        <div style={{ position: "absolute", bottom: -100, right: -100, width: 360, height: 360, background: `radial-gradient(circle, ${aiRisk.color}15 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
-
-                        {/* Content grid */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "center", position: "relative", zIndex: 1 }}>
-                          {/* Left: AI Info */}
-                          <div>
-                            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} style={{ display: "inline-block", marginBottom: 14 }}>
-                              <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "white", padding: "8px 16px", borderRadius: 999, border: `2px solid ${aiRisk.color}20`, boxShadow: `0 8px 16px ${aiRisk.color}12` }}>
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ background: "#FFFFFF", border: `1.5px solid ${aiRisk.color}24`, borderRadius: 26, padding: "22px 20px", boxShadow: "0 10px 26px rgba(40,54,80,0.07)" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                          <div style={{ width: 54, height: 54, borderRadius: 18, background: `${aiRisk.color}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            {aiRisk.indicator}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${aiRisk.color}10`, padding: "6px 10px", borderRadius: 999, border: `1px solid ${aiRisk.color}18`, marginBottom: 10 }}>
                                 {aiRisk.indicator}
-                                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 14, fontWeight: 700, color: aiRisk.color, letterSpacing: 0.5 }}>{aiRisk.label}</span>
+                                <span style={{ fontFamily: "Fredoka, sans-serif", fontSize: 12, fontWeight: 700, color: aiRisk.color, letterSpacing: 0.3 }}>{aiRisk.label}</span>
                               </div>
-                            </motion.div>
-                            <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 22, color: "#1D4F8D", marginBottom: 8, fontWeight: 800, lineHeight: 1.3 }}>AI Sedang Membantu Perkembangan</div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "#5A7292", lineHeight: 1.6, marginBottom: 16 }}>{aiRisk.desc}</div>
-                            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                            <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: "#1D4F8D", marginBottom: 8, fontWeight: 800, lineHeight: 1.25 }}>Ringkasan AI Perkembangan</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#5A7292", lineHeight: 1.55, marginBottom: 14 }}>{aiRisk.desc}</div>
+                            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                               <motion.button
                                 type="button"
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowAiDetail((v) => !v)}
-                                style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", background: "rgba(255,255,255,0.9)", borderRadius: 999, border: `1.5px solid ${aiRisk.color}25`, cursor: "pointer", fontWeight: 700, fontSize: 12, color: "#4A6A8A", fontFamily: "'Nunito', sans-serif" }}
+                                style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 12px", background: "#F8FAFC", borderRadius: 999, border: `1px solid ${aiRisk.color}25`, cursor: "pointer", fontWeight: 800, fontSize: 12, color: "#4A6A8A", fontFamily: "Nunito, sans-serif" }}
                               >
                                 <Sparkles size={14} color={aiRisk.color} /> {showAiDetail ? "Tutup Detail" : "Lihat Detail"}
                               </motion.button>
                             </div>
-                          </div>
-
-                          {/* Right: AI Mascot */}
-                          <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                            <motion.div
-                              animate={{ y: [-12, 12, -12] }}
-                              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                              style={{ position: "relative" }}
-                            >
-                              <AIPremiumMascot size={140} />
-                              {/* Floating sparkles around mascot */}
-                              {[0, 1, 2, 3].map((i) => (
-                                <motion.div
-                                  key={`sparkle-${i}`}
-                                  initial={{ opacity: 0, scale: 0 }}
-                                  animate={{ opacity: [0, 1, 0], scale: [0, 1.2, 0] }}
-                                  transition={{ duration: 1.5, delay: i * 0.3, repeat: Infinity }}
-                                  style={{
-                                    position: "absolute",
-                                    width: 8,
-                                    height: 8,
-                                    background: "#C4B5FD",
-                                    borderRadius: "50%",
-                                    boxShadow: "0 0 12px #DDD6FE",
-                                    ...(i === 0 && { top: 20, left: 30 }),
-                                    ...(i === 1 && { top: 30, right: 20 }),
-                                    ...(i === 2 && { bottom: 30, left: 10 }),
-                                    ...(i === 3 && { bottom: 20, right: 30 }),
-                                  }}
-                                />
-                              ))}
-                            </motion.div>
                           </div>
                         </div>
                       </motion.div>
@@ -1090,7 +1021,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                             style={{ background: "rgba(255,255,255,0.97)", borderRadius: 28, padding: "22px 20px", border: `1.5px solid ${aiRisk.color}22`, boxShadow: "0 10px 28px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 16 }}
                           >
                             <div>
-                              <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 17, color: "#1D4F8D", fontWeight: 800, marginBottom: 6 }}>Ringkasan untuk Orang Tua</div>
+                              <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 17, color: "#1D4F8D", fontWeight: 800, marginBottom: 6 }}>Ringkasan untuk Orang Tua</div>
                               <div style={{ fontSize: 12, color: "#6B7890", fontWeight: 700, lineHeight: 1.5 }}>
                                 Kesimpulan ini membaca hasil latihan, pola kesalahan, waktu respons, dan analisis tulisan. Ini bukan diagnosis medis.
                               </div>
@@ -1099,17 +1030,17 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                               <div style={{ background: `${aiRisk.color}10`, border: `1px solid ${aiRisk.color}20`, borderRadius: 18, padding: "12px 14px" }}>
                                 <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, textTransform: "uppercase", marginBottom: 4 }}>Kepercayaan</div>
-                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: aiRisk.color, fontWeight: 800 }}>{finalConfidence ? finalConfidence.toUpperCase() : "SEDANG"}</div>
+                                <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 16, color: aiRisk.color, fontWeight: 800 }}>{finalConfidence ? finalConfidence.toUpperCase() : "SEDANG"}</div>
                               </div>
                               <div style={{ background: shouldConsultProfessional ? "#FFF0F0" : "#F0FFF8", border: `1px solid ${shouldConsultProfessional ? "#FFD1D1" : "#B8F2D8"}`, borderRadius: 18, padding: "12px 14px" }}>
                                 <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, textTransform: "uppercase", marginBottom: 4 }}>Konsultasi</div>
-                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: shouldConsultProfessional ? "#FF4B4B" : "#00B894", fontWeight: 800 }}>{shouldConsultProfessional ? "Disarankan" : "Belum Perlu"}</div>
+                                <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 16, color: shouldConsultProfessional ? "#FF4B4B" : "#00B894", fontWeight: 800 }}>{shouldConsultProfessional ? "Disarankan" : "Belum Perlu"}</div>
                               </div>
                             </div>
 
                             {finalEvidence.length > 0 && (
                               <div>
-                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: "#1D4F8D", fontWeight: 800, marginBottom: 10 }}>Alasan yang Terbaca</div>
+                                <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 15, color: "#1D4F8D", fontWeight: 800, marginBottom: 10 }}>Alasan yang Terbaca</div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                   {finalEvidence.slice(0, 4).map((item, i) => (
                                     <div key={`evidence-${i}`} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "#F8FAFF", borderRadius: 16, padding: "10px 12px", border: "1px solid #EEF2FF" }}>
@@ -1123,7 +1054,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
 
                             {finalRecommendation && (
                               <div style={{ background: "#F7FBFF", borderRadius: 18, padding: "14px 16px", border: "1px solid #E0F2FE" }}>
-                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: "#1D4F8D", fontWeight: 800, marginBottom: 6 }}>Saran Berikutnya</div>
+                                <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 15, color: "#1D4F8D", fontWeight: 800, marginBottom: 6 }}>Saran Berikutnya</div>
                                 <div style={{ fontSize: 12, color: "#5A7292", fontWeight: 700, lineHeight: 1.5 }}>{finalRecommendation}</div>
                               </div>
                             )}
@@ -1134,15 +1065,15 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                       {/* Stats Grid */}
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: "rgba(255,255,255,0.96)", borderRadius: 24, padding: "20px 14px", textAlign: "center", border: "1.5px solid rgba(240,240,245,0.95)", boxShadow: "0 10px 24px rgba(0,0,0,0.06)" }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, color: "#1CB0F6", fontWeight: 800, marginBottom: 4 }}>{totalLettersAnalyzed}</div>
+                          <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 32, color: "#1CB0F6", fontWeight: 800, marginBottom: 4 }}>{totalLettersAnalyzed}</div>
                           <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, letterSpacing: 0.6, textTransform: "uppercase" }}>Huruf Dianalisis</div>
                         </motion.div>
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} style={{ background: totalReversals > 0 ? "#FFF0F0" : "rgba(255,255,255,0.96)", borderRadius: 24, padding: "20px 14px", textAlign: "center", border: `1.5px solid ${totalReversals > 0 ? "#FFD1D1" : "rgba(240,240,245,0.95)"}`, boxShadow: "0 10px 24px rgba(0,0,0,0.06)" }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, color: totalReversals > 0 ? "#FF4B4B" : "#00B894", fontWeight: 800, marginBottom: 4 }}>{totalReversals}</div>
+                          <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 32, color: totalReversals > 0 ? "#FF4B4B" : "#00B894", fontWeight: 800, marginBottom: 4 }}>{totalReversals}</div>
                           <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, letterSpacing: 0.6, textTransform: "uppercase" }}>Pembalikan</div>
                         </motion.div>
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ background: "rgba(255,255,255,0.96)", borderRadius: 24, padding: "20px 14px", textAlign: "center", border: "1.5px solid rgba(240,240,245,0.95)", boxShadow: "0 10px 24px rgba(0,0,0,0.06)" }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, color: "#FF9600", fontWeight: 800, marginBottom: 4 }}>{totalMismatches}</div>
+                          <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 32, color: "#FF9600", fontWeight: 800, marginBottom: 4 }}>{totalMismatches}</div>
                           <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, letterSpacing: 0.6, textTransform: "uppercase" }}>Tidak Cocok</div>
                         </motion.div>
                       </div>
@@ -1150,7 +1081,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                       {/* Letter Details */}
                       {allLetterResults.length > 0 && (
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} style={{ background: "rgba(255,255,255,0.97)", borderRadius: 28, padding: "22px 20px", border: "1.5px solid rgba(240,240,245,0.95)", boxShadow: "0 10px 28px rgba(0,0,0,0.06)" }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: "#1D4F8D", marginBottom: 6, fontWeight: 800 }}>Detail Huruf yang Ditulis</div>
+                          <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 16, color: "#1D4F8D", marginBottom: 6, fontWeight: 800 }}>Detail Huruf yang Ditulis</div>
                           <div style={{ fontSize: 12, color: "#6B7890", fontWeight: 700, lineHeight: 1.45, marginBottom: 14 }}>
                             Kiri adalah huruf yang diminta, kanan adalah huruf yang terbaca oleh AI.
                           </div>
@@ -1161,9 +1092,9 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                               return (
                                 <motion.div key={`${r.targetChar}-${r.recognizedChar}-${i}`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.05 }} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", borderRadius: 20, background: "white", border: `2px solid ${bgColor}15`, boxShadow: `0 6px 16px ${bgColor}08`, minWidth: 118 }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.targetChar}</span>
+                                    <span style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.targetChar}</span>
                                     <span style={{ fontSize: 12, color: "#C4CAD7", fontWeight: 800 }}>→</span>
-                                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.recognizedChar || "?"}</span>
+                                    <span style={{ fontFamily: "Fredoka, sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.recognizedChar || "?"}</span>
                                     {r.isReversal && <ChunkyCycle size={16} color={bgColor} />}
                                   </div>
                                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -1186,7 +1117,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ background: `${dashboardConclusion.color}10`, border: `1.5px solid ${dashboardConclusion.color}30`, borderRadius: 28, padding: "22px 20px", display: "flex", alignItems: "center", gap: 18, boxShadow: `0 10px 24px ${dashboardConclusion.color}12` }}>
                         <div style={{ flexShrink: 0, width: 60, height: 60, borderRadius: "50%", background: `${dashboardConclusion.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>{dashboardConclusion.icon}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: dashboardConclusion.color, fontWeight: 800 }}>{hasAiData ? "Kesimpulan AI" : "Indikator Latihan"}: {dashboardConclusion.status}</div>
+                          <div style={{ fontFamily: "Fredoka, sans-serif", fontSize: 15, color: dashboardConclusion.color, fontWeight: 800 }}>{hasAiData ? "Kesimpulan AI" : "Indikator Latihan"}: {dashboardConclusion.status}</div>
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#7A8397", marginTop: 4, lineHeight: 1.5 }}>{dashboardConclusion.desc}</div>
                         </div>
                       </motion.div>
@@ -1196,7 +1127,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
 
                 {seasonData.length > 0 && (
                   <section>
-                    <SectionTitle label={`Progress Level · ${viewSeason.label}`} color={p} />
+                    <SectionTitle label={`Progress Level · ${viewSeason.label}`} />
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: "rgba(255,255,255,0.98)", borderRadius: 36, padding: "36px 16px 36px", border: "2px solid rgba(255,255,255,0.8)", boxShadow: "0 16px 40px rgba(0,0,0,0.03)", position: "relative", overflow: "hidden" }}>
                       <div style={{ position: "absolute", bottom: -60, right: -40, width: 220, height: 220, background: `radial-gradient(circle, ${viewSeason.primary}08 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
                       
@@ -1206,7 +1137,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                           {[30, 70, 110, 150].map((y, i) => (
                             <g key={`grid-${i}`}>
                               <line x1="36" y1={y} x2="315" y2={y} stroke={i === 3 ? `${viewSeason.primary}40` : `${viewSeason.primary}12`} strokeWidth={i === 3 ? "2" : "1.5"} strokeDasharray={i === 3 ? "0" : "4 4"} />
-                              <text x="30" y={y + 4} fontSize="11" fill="#A4B1CD" textAnchor="end" fontFamily="'Fredoka', sans-serif" fontWeight="700">
+                              <text x="30" y={y + 4} fontSize="11" fill="#A4B1CD" textAnchor="end" fontFamily="Fredoka, sans-serif" fontWeight="700">
                                 {3 - i}
                               </text>
                             </g>
@@ -1255,7 +1186,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                                 ))}
                                 
                                 {/* Label */}
-                                <text x={x + barW / 2} y="175" fontSize="12" fill={isPlayed ? viewSeason.primary : "#A4B1CD"} textAnchor="middle" fontFamily="'Fredoka', sans-serif" fontWeight="800">
+                                <text x={x + barW / 2} y="175" fontSize="12" fill={isPlayed ? viewSeason.primary : "#A4B1CD"} textAnchor="middle" fontFamily="Fredoka, sans-serif" fontWeight="800">
                                   {lv}
                                 </text>
                               </g>
@@ -1287,7 +1218,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                 )}
 
                 <section>
-                  <SectionTitle label="Analisis Huruf" color="#3A4561" />
+                  <SectionTitle label="Analisis Huruf" />
                   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     {(["b", "d", "p", "q"] as const).map((letter, idx) => {
                       const count = errorCounts[letter];
@@ -1360,7 +1291,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                             animate={isMax ? { scale: [1, 1.05, 1] } : {}}
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             style={{
-                              fontFamily: "'Fredoka', sans-serif",
+                              fontFamily: "Fredoka, sans-serif",
                               fontSize: 64,
                               color: isMax ? viewSeason.primary : "#4A5F7F",
                               lineHeight: 1,
@@ -1383,7 +1314,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                               fontSize: 16,
                               color: isMax ? viewSeason.primary : "#7A8397",
                               fontWeight: 900,
-                              fontFamily: "'Fredoka', sans-serif",
+                              fontFamily: "Fredoka, sans-serif",
                               position: "relative",
                               zIndex: 1,
                             }}

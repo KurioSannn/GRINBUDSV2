@@ -747,7 +747,7 @@ export default function HomePage() {
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               
               <AnimatePresence>
-                {showHeader && (
+                {showHeader && activeTab === "adventure" && (
                   <motion.div
                     initial={{ x: -100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}

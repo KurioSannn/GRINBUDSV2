@@ -121,7 +121,7 @@ export const AVATARS = [
     ),
   },
   {
-    id: "dragon", label: "Naga Mitos", bg: "#FCE4EC", ringColor: "#FF4081", unlockBy: "avatar_legenda",
+    id: "dragon", label: "Naga Merah", bg: "#FCE4EC", ringColor: "#FF4081", unlockBy: "avatar_legenda",
     icon: (
       <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
         <circle cx="32" cy="36" r="20" fill="#FF80AB"/>
@@ -276,40 +276,49 @@ export function ChildSetupScreen({ onFinish }: ChildSetupProps) {
                 <form id="child-form" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                   {/* Avatar selection */}
-                  <div style={{ background: "#F9F9F9", borderRadius: 24, padding: "20px", border: "2px solid #F0F0F0" }}>
-                    <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 18, color: "#3C3C3C", marginBottom: 16, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <div style={{ background: "#F9F9F9", borderRadius: 24, padding: "18px", border: "2px solid #F0F0F0" }}>
+                    <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 18, color: "#3C3C3C", marginBottom: 14, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                       <PawPrint size={20} color="#CE82FF" /> Pilih Karakter!
                     </div>
-                    <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-                      {AVATARS.map((avatar) => {
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, background: "white", borderRadius: 22, padding: "12px 14px", marginBottom: 14, boxShadow: "inset 0 0 0 2px #F0F0F0" }}>
+                      <div style={{ width: 68, height: 68, borderRadius: 22, background: activeAvatar.bg, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 5px 0 ${activeAvatar.ringColor}55`, flexShrink: 0 }}>
+                        <div style={{ width: 52, height: 52 }}>{activeAvatar.icon}</div>
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 12, color: "#888", fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.4 }}>Karakter terpilih</div>
+                        <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 20, color: activeAvatar.ringColor, lineHeight: 1.1 }}>{activeAvatar.label}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+                      {AVATARS.filter(a => !a.unlockBy).map((avatar) => {
                         const isSel = selectedAvatar === avatar.id;
                         return (
                           <motion.button
                             key={avatar.id}
                             type="button"
-                            animate={isSel ? { scale: 1.1, y: [0, -3, 0] } : { scale: 1, y: 0 }}
-                            transition={isSel ? { y: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, scale: { type: "spring", stiffness: 300, damping: 20 } } : { type: "spring", stiffness: 300 }}
+                            animate={isSel ? { scale: 1.03, y: -2 } : { scale: 1, y: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 22 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setSelectedAvatar(avatar.id)}
                             style={{
-                              width: 72, height: 72, flexShrink: 0,
-                              borderRadius: 24, background: avatar.bg,
+                              width: "100%", aspectRatio: "1 / 1",
+                              borderRadius: 22, background: avatar.bg,
                               display: "flex", alignItems: "center", justifyContent: "center",
                               border: `3px solid ${isSel ? avatar.ringColor : "transparent"}`,
-                              boxShadow: isSel ? `0 6px 0 ${avatar.ringColor}, 0 12px 24px ${avatar.ringColor}66` : "0 4px 0 #E0E0E0, 0 8px 16px rgba(0,0,0,0.06)",
-                              cursor: "pointer", opacity: isSel ? 1 : 0.6,
-                              position: "relative",
+                              boxShadow: isSel ? `0 5px 0 ${avatar.ringColor}, 0 10px 18px ${avatar.ringColor}44` : "0 4px 0 #E0E0E0, 0 8px 14px rgba(0,0,0,0.05)",
+                              cursor: "pointer", opacity: isSel ? 1 : 0.72,
+                              position: "relative", overflow: "hidden",
                             }}
                           >
-                            <div style={{ width: 50, height: 50 }}>{avatar.icon}</div>
+                            <div style={{ width: 44, height: 44, position: "relative", zIndex: 2 }}>{avatar.icon}</div>
                             {isSel && (
-                                <motion.div layoutId="avatarGlow" style={{ position: "absolute", inset: -10, borderRadius: 34, background: avatar.ringColor, opacity: 0.2, filter: "blur(6px)", pointerEvents: "none" }} />
+                                <motion.div layoutId="avatarGlow" style={{ position: "absolute", inset: -8, borderRadius: 28, background: avatar.ringColor, opacity: 0.18, filter: "blur(6px)", pointerEvents: "none", zIndex: 1 }} />
                             )}
                           </motion.button>
                         );
                       })}
                     </div>
-                    <div style={{ textAlign: "center", marginTop: 10, fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 13, color: activeAvatar.ringColor, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <div style={{ textAlign: "center", marginTop: 12, fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 13, color: activeAvatar.ringColor, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
                       <CheckCircle2 size={14} /> {activeAvatar.label} dipilih
                     </div>
                   </div>
