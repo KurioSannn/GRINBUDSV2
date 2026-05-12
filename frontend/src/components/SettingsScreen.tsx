@@ -164,6 +164,9 @@ export function SettingsScreen({
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
+  const isEnglish = language === "en";
+  const t = (idText: string, enText: string) => (isEnglish ? enText : idText);
+
   const avatarIcon = useMemo(() => {
     if (!childAvatarId) return null;
     return AVATARS.find((a) => a.id === childAvatarId)?.icon ?? null;
@@ -189,6 +192,11 @@ export function SettingsScreen({
     window.addEventListener(SETTINGS_EVENT, handler as EventListener);
     return () => window.removeEventListener(SETTINGS_EVENT, handler as EventListener);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.lang = language === "en" ? "en" : "id";
+  }, [language]);
 
   const setMuted = (next: boolean) => {
     setAudioMuted(next);
@@ -242,12 +250,12 @@ export function SettingsScreen({
     setPasswordMessage(null);
 
     if (newPassword.trim().length < 6) {
-      setPasswordMessage({ tone: "error", text: "Password minimal 6 karakter." });
+      setPasswordMessage({ tone: "error", text: t("Password minimal 6 karakter.", "Password must be at least 6 characters.") });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordMessage({ tone: "error", text: "Konfirmasi password tidak sama." });
+      setPasswordMessage({ tone: "error", text: t("Konfirmasi password tidak sama.", "Password confirmation does not match.") });
       return;
     }
 
@@ -257,16 +265,16 @@ export function SettingsScreen({
       if (error) {
         setPasswordMessage({
           tone: "error",
-          text: "Gagal mengubah password. Pastikan kamu sudah login.",
+          text: t("Gagal mengubah password. Pastikan kamu sudah login.", "Failed to change password. Make sure you are signed in."),
         });
         return;
       }
 
       setNewPassword("");
       setConfirmPassword("");
-      setPasswordMessage({ tone: "success", text: "Password berhasil diubah." });
+      setPasswordMessage({ tone: "success", text: t("Password berhasil diubah.", "Password updated successfully.") });
     } catch {
-      setPasswordMessage({ tone: "error", text: "Gagal mengubah password. Coba lagi." });
+      setPasswordMessage({ tone: "error", text: t("Gagal mengubah password. Coba lagi.", "Failed to change password. Please try again.") });
     } finally {
       setPasswordLoading(false);
     }
@@ -274,29 +282,29 @@ export function SettingsScreen({
 
   const headerTitle =
     activePanel === "account"
-      ? "Pengaturan Akun"
+      ? t("Pengaturan Akun", "Account Settings")
       : activePanel === "password"
-        ? "Ubah Password"
+        ? t("Ubah Password", "Change Password")
         : activePanel === "language"
-          ? "Bahasa"
+          ? t("Bahasa", "Language")
           : activePanel === "faq"
             ? "FAQ"
             : activePanel === "help"
-              ? "Bantuan"
-              : "Pengaturan";
+              ? t("Bantuan", "Help")
+              : t("Pengaturan", "Settings");
 
   const headerSubtitle =
     activePanel === null
-      ? "Atur pengalaman GrinBuds"
+      ? t("Atur pengalaman GrinBuds", "Customize your GrinBuds experience")
       : activePanel === "account"
-        ? "Kelola informasi akun"
+        ? t("Kelola informasi akun", "Manage account information")
         : activePanel === "password"
-          ? "Perbarui keamanan akun"
+          ? t("Perbarui keamanan akun", "Update account security")
           : activePanel === "language"
-            ? "Pilih bahasa aplikasi"
+            ? t("Pilih bahasa aplikasi", "Choose app language")
             : activePanel === "faq"
-              ? "Pertanyaan yang sering ditanya"
-              : "Butuh bantuan?";
+              ? t("Pertanyaan yang sering ditanya", "Frequently asked questions")
+              : t("Butuh bantuan?", "Need help?");
 
   const languageLabel = language === "en" ? "English" : "Bahasa Indonesia";
   const activePillStyle: React.CSSProperties = {
@@ -401,37 +409,37 @@ export function SettingsScreen({
           <div style={{ flex: 1, overflowY: "auto", padding: "10px 20px 28px" }}>
             {activePanel === null ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <Card title="Akun">
+                <Card title={t("Akun", "Account")}>
                   <RowButton
                     icon={<User size={20} />}
-                    title="Profil Anak"
-                    subtitle={childName ? `Saat ini: ${childName}` : "Atur nama & avatar"}
+                    title={t("Profil Anak", "Child Profile")}
+                    subtitle={childName ? t(`Saat ini: ${childName}`, `Current: ${childName}`) : t("Atur nama & avatar", "Edit name and avatar")}
                     onClick={onOpenProfile}
                   />
                   <RowButton
                     icon={<Settings size={20} />}
-                    title="Pengaturan Akun"
-                    subtitle="Info akun & status login"
+                    title={t("Pengaturan Akun", "Account Settings")}
+                    subtitle={t("Info akun & status login", "Account info & login status")}
                     onClick={() => setActivePanel("account")}
                   />
                   <RowButton
                     icon={<LockKeyhole size={20} />}
-                    title="Ubah Password"
-                    subtitle="Perbarui password akun"
+                    title={t("Ubah Password", "Change Password")}
+                    subtitle={t("Perbarui password akun", "Update account password")}
                     onClick={() => setActivePanel("password")}
                   />
                 </Card>
 
-                <Card title="Preferensi">
+                <Card title={t("Preferensi", "Preferences")}>
                   <RowButton
                     icon={<Languages size={20} />}
-                    title="Bahasa"
-                    subtitle={`Saat ini: ${languageLabel}`}
+                    title={t("Bahasa", "Language")}
+                    subtitle={t(`Saat ini: ${languageLabel}`, `Current: ${languageLabel}`)}
                     onClick={() => setActivePanel("language")}
                   />
                 </Card>
 
-                <Card title="Audio">
+                <Card title={t("Audio", "Audio")}>
                   <div
                     style={{
                       width: "100%",
@@ -460,9 +468,9 @@ export function SettingsScreen({
                         {audioMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                       </div>
                       <div style={{ textAlign: "left" }}>
-                        <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 15, color: "var(--color-text)" }}>Matikan suara</div>
+                        <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 15, color: "var(--color-text)" }}>{t("Matikan suara", "Mute audio")}</div>
                         <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 2 }}>
-                          {audioMuted ? "Semua suara dimatikan" : "Musik & efek suara aktif"}
+                          {audioMuted ? t("Semua suara dimatikan", "All sounds are muted") : t("Musik & efek suara aktif", "Music and SFX are on")}
                         </div>
                       </div>
                     </div>
@@ -471,22 +479,22 @@ export function SettingsScreen({
                   </div>
                 </Card>
 
-                <Card title="Bantuan">
+                <Card title={t("Bantuan", "Help")}>
                   <RowButton
                     icon={<BookOpen size={20} />}
                     title="FAQ"
-                    subtitle="Pertanyaan umum"
+                    subtitle={t("Pertanyaan umum", "Common questions")}
                     onClick={() => setActivePanel("faq")}
                   />
                   <RowButton
                     icon={<HelpCircle size={20} />}
-                    title="Bantuan"
-                    subtitle="Panduan singkat & solusi"
+                    title={t("Bantuan", "Help")}
+                    subtitle={t("Panduan singkat & solusi", "Quick tips & solutions")}
                     onClick={() => setActivePanel("help")}
                   />
                 </Card>
 
-                <Card title="Sesi">
+                <Card title={t("Sesi", "Session")}>
                   <motion.button
                     type="button"
                     whileTap={onSignOut ? { scale: 0.98, y: 2 } : {}}
@@ -511,46 +519,46 @@ export function SettingsScreen({
                       opacity: onSignOut ? 1 : 0.6,
                     }}
                   >
-                    <LogOut size={20} /> Keluar
+                    <LogOut size={20} /> {t("Keluar", "Sign Out")}
                   </motion.button>
                   <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", lineHeight: 1.4, padding: "0 4px" }}>
-                    Keluar akan kembali ke layar masuk. Progres belajar tetap tersimpan.
+                    {t("Keluar akan kembali ke layar masuk. Progres belajar tetap tersimpan.", "Signing out returns to the login screen. Learning progress stays saved.")}
                   </div>
                 </Card>
               </div>
             ) : activePanel === "account" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <Card title="Info Akun">
+                <Card title={t("Info Akun", "Account Info")}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text-light)" }}>Status</div>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text)" }}>{accountLoading ? "Memuat..." : accountEmail ? "Terhubung" : "Belum login"}</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text-light)" }}>{t("Status", "Status")}</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text)" }}>{accountLoading ? t("Memuat...", "Loading...") : accountEmail ? t("Terhubung", "Connected") : t("Belum login", "Not signed in")}</div>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text-light)" }}>Email</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text-light)" }}>{t("Email", "Email")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text)" }}>{accountLoading ? "—" : accountEmail ?? "—"}</div>
                     </div>
                   </div>
                 </Card>
-                <Card title="Catatan">
+                <Card title={t("Catatan", "Note")}>
                   <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 13, color: "var(--color-text-light)", lineHeight: 1.5 }}>
-                    Pengaturan akun dan ubah password akan berfungsi jika aplikasi sudah terhubung dengan sistem login.
+                    {t("Pengaturan akun dan ubah password akan berfungsi jika aplikasi sudah terhubung dengan sistem login.", "Account settings and password changes work when the app is connected to the login system.")}
                   </div>
                 </Card>
               </div>
             ) : activePanel === "password" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <Card title="Ubah Password">
+                <Card title={t("Ubah Password", "Change Password")}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       <label style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text-light)", paddingLeft: 4 }}>
-                        Password baru
+                        {t("Password baru", "New password")}
                       </label>
                       <input
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Minimal 6 karakter"
+                        placeholder={t("Minimal 6 karakter", "At least 6 characters")}
                         style={{
                           width: "100%",
                           borderRadius: 22,
@@ -568,13 +576,13 @@ export function SettingsScreen({
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       <label style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 13, color: "var(--color-text-light)", paddingLeft: 4 }}>
-                        Konfirmasi password
+                        {t("Konfirmasi password", "Confirm password")}
                       </label>
                       <input
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Ulangi password"
+                        placeholder={t("Ulangi password", "Repeat password")}
                         style={{
                           width: "100%",
                           borderRadius: 22,
@@ -627,53 +635,53 @@ export function SettingsScreen({
                         cursor: passwordLoading ? "not-allowed" : "pointer",
                       }}
                     >
-                      {passwordLoading ? "Menyimpan..." : "Simpan Password"}
+                      {passwordLoading ? t("Menyimpan...", "Saving...") : t("Simpan Password", "Save Password")}
                     </motion.button>
                   </div>
                 </Card>
               </div>
             ) : activePanel === "language" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <Card title="Pilih Bahasa">
+                <Card title={t("Pilih Bahasa", "Choose Language")}>
                   <RowButton
                     icon={<Languages size={20} />}
-                    title="Bahasa Indonesia"
-                    subtitle="Disarankan"
+                    title={t("Bahasa Indonesia", "Bahasa Indonesia")}
+                    subtitle={t("Disarankan", "Recommended")}
                     onClick={() => setAppLanguage("id")}
-                    right={language === "id" ? <span style={activePillStyle}>Aktif</span> : null}
+                    right={language === "id" ? <span style={activePillStyle}>{t("Aktif", "Active")}</span> : null}
                   />
                   <RowButton
                     icon={<Languages size={20} />}
                     title="English"
-                    subtitle="Beta"
+                    subtitle={t("Beta", "Beta")}
                     onClick={() => setAppLanguage("en")}
-                    right={language === "en" ? <span style={activePillStyle}>Aktif</span> : null}
+                    right={language === "en" ? <span style={activePillStyle}>{t("Aktif", "Active")}</span> : null}
                   />
                   <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", lineHeight: 1.4, padding: "0 4px" }}>
-                    Beberapa teks mungkin masih menggunakan Bahasa Indonesia.
+                    {t("Beberapa bagian aplikasi mungkin masih berbahasa Indonesia.", "Some parts of the app may still be in Bahasa Indonesia.")}
                   </div>
                 </Card>
               </div>
             ) : activePanel === "faq" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <Card title="Pertanyaan Umum">
+                <Card title={t("Pertanyaan Umum", "FAQ")}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>Bagaimana cara mematikan suara?</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Bagaimana cara mematikan suara?", "How do I mute the audio?")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
-                        Buka Pengaturan → Audio → aktifkan “Matikan suara”.
+                        {t("Buka Pengaturan → Audio → aktifkan “Matikan suara”.", "Go to Settings → Audio → enable \"Mute audio\".")}
                       </div>
                     </div>
                     <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>Bagaimana cara mengganti profil anak?</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Bagaimana cara mengganti profil anak?", "How do I change the child profile?")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
-                        Masuk ke Pengaturan → Profil Anak untuk mengganti nama dan avatar.
+                        {t("Masuk ke Pengaturan → Profil Anak untuk mengganti nama dan avatar.", "Open Settings → Child Profile to update name and avatar.")}
                       </div>
                     </div>
                     <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>Apakah progres belajar tersimpan?</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Apakah progres belajar tersimpan?", "Is learning progress saved?")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
-                        Progres disimpan setelah misi selesai. Pastikan koneksi stabil saat menyimpan.
+                        {t("Progres disimpan setelah misi selesai. Pastikan koneksi stabil saat menyimpan.", "Progress is saved after a mission finishes. Keep a stable connection while saving.")}
                       </div>
                     </div>
                   </div>
@@ -681,24 +689,34 @@ export function SettingsScreen({
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <Card title="Bantuan">
+                <Card title={t("Bantuan", "Help")}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>Tidak ada suara?</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Tidak ada suara?", "No sound?")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
-                        Cek Pengaturan → Audio, lalu pastikan volume perangkat tidak dalam mode senyap.
+                        {t("Cek Pengaturan → Audio, lalu pastikan volume perangkat tidak dalam mode senyap.", "Check Settings → Audio, then make sure device volume is not muted.")}
                       </div>
                     </div>
                     <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>Aplikasi terasa lambat?</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Aplikasi terasa lambat?", "App feels slow?")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
-                        Tutup aplikasi lalu buka kembali. Jika masih, coba bersihkan tab yang sedang berjalan.
+                        {t("Tutup aplikasi lalu buka kembali. Jika masih, coba bersihkan tab yang sedang berjalan.", "Close and reopen the app. If it persists, close other open tabs.")}
                       </div>
                     </div>
                     <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
-                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>Tidak bisa mengubah password?</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Tidak bisa mengubah password?", "Can't change password?")}</div>
                       <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
-                        Fitur ini membutuhkan akun yang sudah login. Coba keluar lalu masuk kembali.
+                        {t("Fitur ini membutuhkan akun yang sudah login. Coba keluar lalu masuk kembali.", "This feature requires a signed-in account. Try signing out and back in.")}
+                      </div>
+                    </div>
+                    <div style={{ background: "var(--color-bg)", padding: "14px 14px", borderRadius: 22 }}>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 900, fontSize: 14, color: "var(--color-text)" }}>{t("Kontak", "Contact")}</div>
+                      <div style={{ fontFamily: "var(--font-body)", fontWeight: 800, fontSize: 12, color: "var(--color-text-light)", marginTop: 6, lineHeight: 1.45 }}>
+                        {t("Email bantuan:", "Support email:")}
+                        {" "}
+                        <a href="mailto:grinbuds@gmail.com" style={{ color: "var(--color-blue)", fontWeight: 900, textDecoration: "none" }}>
+                          grinbuds@gmail.com
+                        </a>
                       </div>
                     </div>
                   </div>
