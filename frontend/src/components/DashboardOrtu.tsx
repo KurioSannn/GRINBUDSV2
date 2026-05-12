@@ -415,6 +415,13 @@ const getSeasonByLevel = (level: number) => SEASONS.find((s) => level >= s.level
 const getSeasonIndex = (key: string) => SEASONS.findIndex((s) => s.key === key);
 const MIN_LEVELS_FOR_AI_ANALYSIS = 8;
 
+const aiRiskLevelToRecommendation = (riskLevel?: "rendah" | "sedang" | "tinggi") => {
+  if (riskLevel === "tinggi") return "Simpan hasil ini dan pertimbangkan konsultasi dengan dokter anak, psikolog, atau terapis tumbuh kembang.";
+  if (riskLevel === "sedang") return "Lanjutkan latihan membaca dan menulis, lalu pantau pola kesalahan dalam beberapa sesi berikutnya.";
+  if (riskLevel === "rendah") return "Lanjutkan latihan rutin dan gunakan hasil ini sebagai pemantauan perkembangan, bukan diagnosis medis.";
+  return "";
+};
+
 function SectionTitle({ label, color }: { label: string; color: string }) {
   return (
     <div style={{ marginBottom: 20, position: "relative" }}>
@@ -643,6 +650,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const [loading, setLoading] = useState(true);
   const [generatedFinalAssessment, setGeneratedFinalAssessment] = useState<FinalAiAssessment | null>(null);
   const [generatingFinalAssessment, setGeneratingFinalAssessment] = useState(false);
+  const [showAiDetail, setShowAiDetail] = useState(false);
 
   useEffect(() => {
     setViewSeasonKey(getSeasonByLevel(currentLevel).key);
@@ -734,11 +742,13 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const aiResults = hasMinimumLevelsForAi ? rawAiResults : [];
   const hasAiData = hasMinimumLevelsForAi && (aiResults.length > 0 || !!finalAssessment);
   const levelsRemainingForAi = Math.max(0, MIN_LEVELS_FOR_AI_ANALYSIS - completedUniqueLevelCount);
-  const totalReversals = aiResults.reduce((s, a) => s + a.reversalCount, 0);
-  const totalMismatches = aiResults.reduce((s, a) => s + a.mismatchCount, 0);
-  const totalLettersAnalyzed = aiResults.reduce((s, a) => s + a.totalAnalyzed, 0);
-  const avgProbability = aiResults.length > 0 ? aiResults.reduce((s, a) => s + a.overallProbability, 0) / aiResults.length : 0;
-  const allLetterResults = aiResults.flatMap((a) => a.perLetterResults);
+  const totalReversals = latestAiAssessment?.reversalCount ?? aiResults.reduce((s, a) => s + a.reversalCount, 0);
+  const totalMismatches = latestAiAssessment?.mismatchCount ?? aiResults.reduce((s, a) => s + a.mismatchCount, 0);
+  const totalLettersAnalyzed = latestAiAssessment?.totalAnalyzed ?? aiResults.reduce((s, a) => s + a.totalAnalyzed, 0);
+  const avgProbability = latestAiAssessment?.overallProbability ?? (aiResults.length > 0 ? aiResults.reduce((s, a) => s + a.overallProbability, 0) / aiResults.length : 0);
+  const allLetterResults = latestAiAssessment?.perLetterResults ?? aiResults.flatMap((a) => a.perLetterResults);
+  const finalEvidence = finalAssessment?.evidence?.filter(Boolean) ?? latestAiAssessment?.indicators ?? [];
+  const finalConfidence = finalAssessment?.confidence;
   const aggregateAiRiskLevel =
     totalReversals >= 3 || avgProbability > 0.65
       ? "tinggi"
@@ -746,6 +756,8 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
         ? "sedang"
         : "rendah";
   const finalAiRiskLevel = finalAssessment?.riskLevel ?? latestAiAssessment?.riskLevel ?? aggregateAiRiskLevel;
+  const finalRecommendation = finalAssessment?.recommendation ?? aiRiskLevelToRecommendation(finalAiRiskLevel);
+  const shouldConsultProfessional = finalAssessment?.shouldConsultProfessional ?? finalAiRiskLevel === "tinggi";
 
   const aiRisk = finalAiRiskLevel === "tinggi"
     ? { level: "tinggi" as const, color: "#FF4B4B", label: "Risiko Tinggi", desc: finalAssessment?.summary || latestAiAssessment?.summary || "AI mendeteksi pola pembalikan huruf yang konsisten. Sangat disarankan konsultasi dengan dokter atau profesional.", indicator: <IndicatorDot color="#FF4B4B" /> }
@@ -998,9 +1010,15 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                             <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 22, color: "#1D4F8D", marginBottom: 8, fontWeight: 800, lineHeight: 1.3 }}>AI Sedang Membantu Perkembangan</div>
                             <div style={{ fontSize: 13, fontWeight: 700, color: "#5A7292", lineHeight: 1.6, marginBottom: 16 }}>{aiRisk.desc}</div>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", background: "rgba(255,255,255,0.9)", borderRadius: 999, border: `1.5px solid ${aiRisk.color}25`, cursor: "pointer", fontWeight: 700, fontSize: 12, color: "#4A6A8A" }}>
-                                <Sparkles size={14} color={aiRisk.color} /> Lihat Detail
-                              </motion.div>
+                              <motion.button
+                                type="button"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setShowAiDetail((v) => !v)}
+                                style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", background: "rgba(255,255,255,0.9)", borderRadius: 999, border: `1.5px solid ${aiRisk.color}25`, cursor: "pointer", fontWeight: 700, fontSize: 12, color: "#4A6A8A", fontFamily: "'Nunito', sans-serif" }}
+                              >
+                                <Sparkles size={14} color={aiRisk.color} /> {showAiDetail ? "Tutup Detail" : "Lihat Detail"}
+                              </motion.button>
                             </div>
                           </div>
 
@@ -1038,6 +1056,57 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                         </div>
                       </motion.div>
 
+                      <AnimatePresence>
+                        {showAiDetail && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.2 }}
+                            style={{ background: "rgba(255,255,255,0.97)", borderRadius: 28, padding: "22px 20px", border: `1.5px solid ${aiRisk.color}22`, boxShadow: "0 10px 28px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 16 }}
+                          >
+                            <div>
+                              <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 17, color: "#1D4F8D", fontWeight: 800, marginBottom: 6 }}>Ringkasan untuk Orang Tua</div>
+                              <div style={{ fontSize: 12, color: "#6B7890", fontWeight: 700, lineHeight: 1.5 }}>
+                                Kesimpulan ini membaca hasil latihan, pola kesalahan, waktu respons, dan analisis tulisan. Ini bukan diagnosis medis.
+                              </div>
+                            </div>
+
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                              <div style={{ background: `${aiRisk.color}10`, border: `1px solid ${aiRisk.color}20`, borderRadius: 18, padding: "12px 14px" }}>
+                                <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, textTransform: "uppercase", marginBottom: 4 }}>Kepercayaan</div>
+                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: aiRisk.color, fontWeight: 800 }}>{finalConfidence ? finalConfidence.toUpperCase() : "SEDANG"}</div>
+                              </div>
+                              <div style={{ background: shouldConsultProfessional ? "#FFF0F0" : "#F0FFF8", border: `1px solid ${shouldConsultProfessional ? "#FFD1D1" : "#B8F2D8"}`, borderRadius: 18, padding: "12px 14px" }}>
+                                <div style={{ fontSize: 10, color: "#7A8397", fontWeight: 900, textTransform: "uppercase", marginBottom: 4 }}>Konsultasi</div>
+                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: shouldConsultProfessional ? "#FF4B4B" : "#00B894", fontWeight: 800 }}>{shouldConsultProfessional ? "Disarankan" : "Belum Perlu"}</div>
+                              </div>
+                            </div>
+
+                            {finalEvidence.length > 0 && (
+                              <div>
+                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: "#1D4F8D", fontWeight: 800, marginBottom: 10 }}>Alasan yang Terbaca</div>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                  {finalEvidence.slice(0, 4).map((item, i) => (
+                                    <div key={`evidence-${i}`} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "#F8FAFF", borderRadius: 16, padding: "10px 12px", border: "1px solid #EEF2FF" }}>
+                                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: `${aiRisk.color}16`, color: aiRisk.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{i + 1}</span>
+                                      <span style={{ fontSize: 12, color: "#5A7292", fontWeight: 700, lineHeight: 1.45 }}>{item}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {finalRecommendation && (
+                              <div style={{ background: "#F7FBFF", borderRadius: 18, padding: "14px 16px", border: "1px solid #E0F2FE" }}>
+                                <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: "#1D4F8D", fontWeight: 800, marginBottom: 6 }}>Saran Berikutnya</div>
+                                <div style={{ fontSize: 12, color: "#5A7292", fontWeight: 700, lineHeight: 1.5 }}>{finalRecommendation}</div>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       {/* Stats Grid */}
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: "rgba(255,255,255,0.96)", borderRadius: 24, padding: "20px 14px", textAlign: "center", border: "1.5px solid rgba(240,240,245,0.95)", boxShadow: "0 10px 24px rgba(0,0,0,0.06)" }}>
@@ -1057,17 +1126,26 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                       {/* Letter Details */}
                       {allLetterResults.length > 0 && (
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} style={{ background: "rgba(255,255,255,0.97)", borderRadius: 28, padding: "22px 20px", border: "1.5px solid rgba(240,240,245,0.95)", boxShadow: "0 10px 28px rgba(0,0,0,0.06)" }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: "#1D4F8D", marginBottom: 14, fontWeight: 800 }}>Detail Pengenalan Huruf</div>
+                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 16, color: "#1D4F8D", marginBottom: 6, fontWeight: 800 }}>Detail Huruf yang Ditulis</div>
+                          <div style={{ fontSize: 12, color: "#6B7890", fontWeight: 700, lineHeight: 1.45, marginBottom: 14 }}>
+                            Kiri adalah huruf yang diminta, kanan adalah huruf yang terbaca oleh AI.
+                          </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                             {allLetterResults.map((r, i) => {
                               const bgColor = r.isReversal ? "#FF4B4B" : r.isMismatch ? "#FF9600" : "#00B894";
+                              const statusText = r.isReversal ? "Terbalik" : r.isMismatch ? "Tidak cocok" : "Terbaca benar";
                               return (
-                                <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.05 }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 20, background: "white", border: `2px solid ${bgColor}15`, boxShadow: `0 6px 16px ${bgColor}08` }}>
-                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.targetChar}</span>
-                                  <span style={{ fontSize: 12, color: "#C4CAD7", fontWeight: 800 }}>→</span>
-                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.recognizedChar || "?"}</span>
-                                  {r.isReversal && <ChunkyCycle size={16} color={bgColor} />}
-                                  {r.confidence !== null && <span style={{ fontSize: 10, color: "#A0A7B5", fontWeight: 900, marginLeft: 2 }}>{Math.round(r.confidence * 100)}%</span>}
+                                <motion.div key={`${r.targetChar}-${r.recognizedChar}-${i}`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.05 }} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", borderRadius: 20, background: "white", border: `2px solid ${bgColor}15`, boxShadow: `0 6px 16px ${bgColor}08`, minWidth: 118 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.targetChar}</span>
+                                    <span style={{ fontSize: 12, color: "#C4CAD7", fontWeight: 800 }}>→</span>
+                                    <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.recognizedChar || "?"}</span>
+                                    {r.isReversal && <ChunkyCycle size={16} color={bgColor} />}
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                                    <span style={{ fontSize: 10, color: bgColor, fontWeight: 900 }}>{statusText}</span>
+                                    {r.confidence !== null && <span style={{ fontSize: 10, color: "#A0A7B5", fontWeight: 900 }}>{Math.round(r.confidence * 100)}%</span>}
+                                  </div>
                                 </motion.div>
                               );
                             })}
@@ -1075,7 +1153,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                           <div style={{ display: "flex", gap: 14, marginTop: 14, fontSize: 11, color: "#7A8397", fontWeight: 800, flexWrap: "wrap" }}>
                             <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: "50%", background: "#00B894" }} /> Benar</span>
                             <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF9600" }} /> Tidak Cocok</span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF4B4B" }} /> Terbalik 🔄</span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF4B4B" }} /> Terbalik</span>
                           </div>
                         </motion.div>
                       )}
