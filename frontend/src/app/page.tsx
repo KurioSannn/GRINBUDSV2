@@ -910,7 +910,7 @@ export default function HomePage() {
                   style={{ width: "100%", background: "white", borderRadius: "36px 36px 0 0", padding: "36px 24px 40px", textAlign: "center", position: "relative" }}
                 >
                   <div style={{ width: 48, height: 6, borderRadius: 3, background: "#E5E5E5", margin: "0 auto 32px" }} />
-                  <div style={{ width: 96, height: 96, borderRadius: 32, background: selected.bg, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", color: selected.color, boxShadow: `0 8px 0 ${selected.color}44, inset 0 2px 0 rgba(255,255,255,0.8)` }}>
+                  <div style={{ width: 96, height: 96, borderRadius: 32, background: `linear-gradient(135deg, ${selected.bg[0]} 0%, ${selected.bg[selected.bg.length - 1]} 100%)`, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", color: selected.color, boxShadow: `0 8px 0 ${selected.color}44, inset 0 2px 0 rgba(255,255,255,0.8)` }}>
                     {selected.seasonName === "Semi" ? <Flower2 size={48} /> : selected.seasonName === "Panas" ? <Sun size={48} /> : selected.seasonName === "Gugur" ? <Leaf size={48} /> : <Snowflake size={48} />}
                   </div>
                   <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 32, color: "#3C3C3C", marginBottom: 8 }}>Level {selected.id}</h2>
