@@ -55,10 +55,10 @@ const AIPremiumMascot = ({ size = 140 }: { size?: number }) => (
 
 const SmallMascotReaction = ({ type = "happy", size = 28 }: { type: "happy" | "sad" | "neutral" | "confused"; size?: number }) => {
   const colorMap = {
-    happy: { bg: "#58CC02", mouth: "🙂" },
-    sad: { bg: "#FF4B4B", mouth: "😢" },
-    neutral: { bg: "#FFB800", mouth: "😐" },
-    confused: { bg: "#FF9F43", mouth: "🤔" },
+    happy: { bg: "#58CC02" },
+    sad: { bg: "#FF4B4B" },
+    neutral: { bg: "#FFB800" },
+    confused: { bg: "#FF9F43" },
   };
   const color = colorMap[type];
   return (
@@ -208,6 +208,32 @@ const ChunkyFace = ({ size = 24, type = "smile" }: { size?: number; type: "smile
     </svg>
   );
 };
+
+const ChunkySearch = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ filter: "drop-shadow(0 4px 8px rgba(168,85,247,0.3))" }}>
+    <defs><linearGradient id="searchG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#DDD6FE" /><stop offset="100%" stopColor="#A78BFA" /></linearGradient></defs>
+    <circle cx="13" cy="13" r="9" stroke="url(#searchG)" strokeWidth="4" />
+    <path d="M20 20 L28 28" stroke="url(#searchG)" strokeWidth="4" strokeLinecap="round" />
+  </svg>
+);
+
+const ChunkyCycle = ({ size = 24, color = "#FF4B4B" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ filter: `drop-shadow(0 4px 8px ${color}30)` }}>
+    <path d="M26 16 C26 21.5 21.5 26 16 26 C10.5 26 6 21.5 6 16 C6 10.5 10.5 6 16 6" stroke={color} strokeWidth="4" strokeLinecap="round" />
+    <path d="M22 10 L26 16 L30 12" stroke={color} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ChunkyZap = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ filter: "drop-shadow(0 4px 8px rgba(255,150,0,0.3))" }}>
+    <defs><linearGradient id="zapG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FFD93D" /><stop offset="100%" stopColor="#FF9600" /></linearGradient></defs>
+    <path d="M18 2 L6 18 H14 L12 30 L24 14 H16 L18 2 Z" fill="url(#zapG)" stroke="#FFF" strokeWidth="2" strokeLinejoin="round" />
+  </svg>
+);
+
+const IndicatorDot = ({ color }: { color: string }) => (
+  <div style={{ width: 12, height: 12, borderRadius: "50%", background: color, boxShadow: `0 0 12px ${color}`, border: "2.5px solid white" }} />
+);
 
 const getDecorIcon = (key: string, size: number) => {
   if (key === "spring") return <ChunkyFlower size={size} />;
@@ -388,9 +414,74 @@ const getSeasonIndex = (key: string) => SEASONS.findIndex((s) => s.key === key);
 
 function SectionTitle({ label, color }: { label: string; color: string }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <h2 style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 20, color, margin: 0, lineHeight: 1.15 }}>{label}</h2>
-      <div style={{ marginTop: 8, width: 56, height: 4, borderRadius: 999, background: `linear-gradient(90deg, ${color}, rgba(255,255,255,0.1))` }} />
+    <div style={{ marginBottom: 20, position: "relative" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+        <h2 style={{ 
+          fontFamily: "'Fredoka', sans-serif", 
+          fontSize: 22, 
+          fontWeight: 800,
+          color: "#3A4561", 
+          margin: 0, 
+          lineHeight: 1.1,
+          letterSpacing: "-0.01em"
+        }}>
+          {label}
+        </h2>
+        <motion.div
+          animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.1, 0.8] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Sparkles size={16} color={color} fill={color} opacity={0.6} />
+        </motion.div>
+      </div>
+      <div style={{ position: "relative", height: 8, display: "flex", alignItems: "center" }}>
+        {/* Soft underlying glow */}
+        <div style={{ 
+          position: "absolute", 
+          left: 0, 
+          width: 80, 
+          height: 12, 
+          background: color, 
+          filter: "blur(8px)", 
+          opacity: 0.25,
+          borderRadius: 999
+        }} />
+        
+        {/* Main decorative bar */}
+        <div style={{ 
+          position: "relative",
+          width: 64, 
+          height: 6, 
+          borderRadius: 999, 
+          background: `linear-gradient(90deg, ${color}, ${color}88)`,
+          boxShadow: `0 2px 10px ${color}40`,
+          overflow: "hidden"
+        }}>
+          {/* Shimmer effect inside the bar */}
+          <motion.div
+            animate={{ x: [-100, 200] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "40%",
+              height: "100%",
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+            }}
+          />
+        </div>
+        
+        {/* Small glowing dot at the end */}
+        <div style={{ 
+          marginLeft: 4, 
+          width: 6, 
+          height: 6, 
+          borderRadius: "50%", 
+          background: color,
+          boxShadow: `0 0 8px ${color}`
+        }} />
+      </div>
     </div>
   );
 }
@@ -454,17 +545,17 @@ function PremiumHeader({
         </svg>
       </div>
 
-      <div style={{ position: "relative", zIndex: 2, padding: "20px 16px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+      <div style={{ position: "relative", zIndex: 2, padding: "16px 16px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <motion.button
           whileTap={{ scale: 0.9 }}
           whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.35)" }}
           onClick={onClose}
           style={{
-            width: 42,
-            height: 42,
+            width: 38,
+            height: 38,
             borderRadius: 999,
             background: "rgba(255, 255, 255, 0.25)",
-            border: "2px solid rgba(255, 255, 255, 0.38)",
+            border: "1.5px solid rgba(255, 255, 255, 0.3)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -473,74 +564,62 @@ function PremiumHeader({
             flexShrink: 0,
           }}
         >
-          <ChevronLeft size={20} color="white" strokeWidth={2.8} />
+          <ChevronLeft size={18} color="white" strokeWidth={3} />
         </motion.button>
 
         <div style={{ textAlign: "center", flex: 1, minWidth: 0 }}>
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 24, color: "white", textShadow: "0 3px 10px rgba(0,0,0,0.22)", lineHeight: 1, marginBottom: 4 }}>
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 20, color: "white", textShadow: "0 2px 8px rgba(0,0,0,0.15)", lineHeight: 1, marginBottom: 2 }}>
             Dashboard Ortu
           </motion.div>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: 10, color: "rgba(255,255,255,0.92)", fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
             Pantau Perkembangan
           </motion.div>
         </div>
 
-        <div style={{ width: 42, height: 42, borderRadius: 999, background: "rgba(255, 255, 255, 0.25)", border: "2px solid rgba(255, 255, 255, 0.38)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", flexShrink: 0 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 999, background: "rgba(255, 255, 255, 0.25)", border: "1.5px solid rgba(255, 255, 255, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", flexShrink: 0 }}>
           {viewSeason.icon}
         </div>
       </div>
 
-      <div style={{ position: "relative", zIndex: 2, padding: "12px 12px 22px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, background: "rgba(0,0,0,0.12)", borderRadius: 28, padding: 8, backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.18)" }}>
+      <div style={{ position: "relative", zIndex: 2, padding: "0 12px 14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, background: "rgba(0,0,0,0.08)", borderRadius: 24, padding: 6, backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.12)" }}>
           {SEASONS.map((s, idx) => {
             const unlocked = idx <= activeSeasonIdx;
             const active = s.key === viewSeasonKey;
             return (
               <motion.button
                 key={s.key}
-                whileTap={unlocked ? { scale: 0.88 } : {}}
-                whileHover={unlocked ? { y: -4 } : {}}
+                whileTap={unlocked ? { scale: 0.92 } : {}}
+                whileHover={unlocked ? { y: -2 } : {}}
                 onClick={() => unlocked && setViewSeasonKey(s.key)}
                 style={{
-                  padding: "18px 10px",
-                  borderRadius: 22,
+                  padding: "10px 4px",
+                  borderRadius: 18,
                   border: "none",
                   cursor: unlocked ? "pointer" : "not-allowed",
-                  background: active ? "rgba(255, 255, 255, 0.98)" : "rgba(255, 255, 255, 0.08)",
+                  background: active ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.05)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 7,
-                  opacity: unlocked ? 1 : 0.45,
-                  boxShadow: active ? `0 12px 28px ${s.primary}35` : "none",
-                  backdropFilter: "blur(10px)",
+                  gap: 4,
+                  opacity: unlocked ? 1 : 0.4,
+                  boxShadow: active ? `0 8px 20px ${s.primary}25` : "none",
                   position: "relative",
-                  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  transition: "all 0.2s ease",
                 }}
               >
-                {active && <motion.div layoutId="tab-glow" style={{ position: "absolute", inset: -2, borderRadius: 22, background: `${s.primary}20`, zIndex: -1 }} transition={{ type: "spring", stiffness: 220, damping: 22 }} />}
-                <motion.div animate={active ? { scale: 1.2, y: -2 } : { scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15 }} style={{ opacity: unlocked ? 1 : 0.55, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ width: 48, height: 48, background: active ? s.bg : `${s.primary}20`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: active ? `0 8px 18px ${s.primary}32` : "none" }}>
-                    {s.icon}
-                  </div>
-                </motion.div>
-                <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 900, fontSize: 13, color: active ? s.primary : "rgba(255, 255, 255, 0.88)", letterSpacing: 0.4, lineHeight: 1.2, textAlign: "center" }}>
+                <div style={{ width: 34, height: 34, background: active ? s.bg : `${s.primary}12`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", transform: active ? "scale(1.1)" : "scale(1)", transition: "transform 0.3s ease" }}>
+                  {React.cloneElement(s.icon as React.ReactElement, { size: 16 })}
+                </div>
+                <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 11, color: active ? s.primary : "rgba(255, 255, 255, 0.75)", letterSpacing: 0.3 }}>
                   {s.label.split(" ").pop()}
                 </span>
                 {!unlocked && (
-                  <svg viewBox="0 0 10 10" width="8" height="8" fill="rgba(255,255,255,0.6)">
-                    <rect x="1.5" y="4" width="7" height="5" rx="1" />
-                    <path d="M3 4V2.5a2 2 0 014 0V4" stroke="rgba(255,255,255,0.6)" strokeWidth="1" fill="none" />
-                  </svg>
+                   <div style={{ position: "absolute", top: 4, right: 4 }}><Lock size={8} color="rgba(255,255,255,0.5)" /></div>
                 )}
-                {idx === activeSeasonIdx && unlocked && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ position: "absolute", top: 3, right: 3, width: 8, height: 8, borderRadius: "50%", background: s.primary, boxShadow: `0 0 8px ${s.primary}` }} />}
               </motion.button>
             );
           })}
-        </div>
-
-        <div style={{ marginTop: 10, padding: "10px 14px", background: "rgba(255,255,255,0.14)", borderRadius: 14, fontSize: 10, color: "rgba(255, 255, 255, 0.95)", fontWeight: 800, textAlign: "center", backdropFilter: "blur(10px)", border: "1px solid rgba(255, 255, 255, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <Calendar size={14} /> Selesaikan musim sebelumnya untuk membuka musim baru! <Sparkles size={14} />
         </div>
       </div>
 
@@ -642,10 +721,10 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const allLetterResults = aiResults.flatMap((a) => a.perLetterResults);
 
   const aiRisk = totalReversals >= 3 || avgProbability > 0.65
-    ? { level: "tinggi" as const, color: "#FF4B4B", label: "Risiko Tinggi", desc: "AI mendeteksi pola pembalikan huruf yang konsisten. Sangat disarankan konsultasi dengan profesional.", emoji: "🔴" }
+    ? { level: "tinggi" as const, color: "#FF4B4B", label: "Risiko Tinggi", desc: "AI mendeteksi pola pembalikan huruf yang konsisten. Sangat disarankan konsultasi dengan profesional.", indicator: <IndicatorDot color="#FF4B4B" /> }
     : totalReversals >= 1 || avgProbability > 0.45
-      ? { level: "sedang" as const, color: "#FF9600", label: "Perlu Perhatian", desc: "Ada beberapa pola yang perlu dipantau. Lanjutkan latihan dan perhatikan perkembangan.", emoji: "🟡" }
-      : { level: "rendah" as const, color: "#00B894", label: "Risiko Rendah", desc: "AI tidak mendeteksi tanda-tanda signifikan disleksia. Anak menunjukkan perkembangan yang baik!", emoji: "🟢" };
+      ? { level: "sedang" as const, color: "#FF9600", label: "Perlu Perhatian", desc: "Ada beberapa pola yang perlu dipantau. Lanjutkan latihan dan perhatikan perkembangan.", indicator: <IndicatorDot color="#FF9600" /> }
+      : { level: "rendah" as const, color: "#00B894", label: "Risiko Rendah", desc: "AI tidak mendeteksi tanda-tanda signifikan disleksia. Anak menunjukkan perkembangan yang baik!", indicator: <IndicatorDot color="#00B894" /> };
 
   return (
     <AnimatePresence>
@@ -695,6 +774,21 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                     <GlassStatCard icon={<ChunkyShield size={34} />} value={`${Math.round(progressPercent)}%`} label="Progres" color="#9C27B0" shadow="rgba(156,39,176,0.14)" />
                   </motion.div>
                 </div>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                  style={{ padding: "12px 16px", background: "rgba(255,255,255,0.6)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${viewSeason.primary}15`, display: "flex", alignItems: "center", justifyContent: "center", color: viewSeason.primary }}>
+                    <Calendar size={16} />
+                  </div>
+                  <div style={{ flex: 1, fontSize: 11, fontWeight: 700, color: "#5A7292", lineHeight: 1.4 }}>
+                    Selesaikan musim sebelumnya untuk membuka musim baru!
+                  </div>
+                  <Sparkles size={14} color={viewSeason.primary} opacity={0.6} />
+                </motion.div>
 
                 <section>
                   <SectionTitle label="Perjalanan Musim" color="#3A4561" />
@@ -776,14 +870,21 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                 </section>
 
                 <section>
-                  <SectionTitle label="🧠 Analisis AI Disleksia" color="#3A4561" />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 10, background: "#F3E8FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333EA", boxShadow: "0 4px 10px rgba(147,51,234,0.15)" }}>
+                      <Sparkles size={18} fill="currentColor" />
+                    </div>
+                    <SectionTitle label="Analisis AI Disleksia" color="#3A4561" />
+                  </div>
                   {!hasAiData ? (
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: `linear-gradient(135deg, #EDE9FE, #F3E8FF)`, borderRadius: 32, padding: "48px 28px", textAlign: "center", border: "2px solid rgba(168, 85, 247, 0.15)", boxShadow: "0 16px 40px rgba(168,85,247,0.12)", position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, background: "radial-gradient(circle, rgba(196,124,253,0.2) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-                      <div style={{ position: "absolute", bottom: -40, left: -60, width: 200, height: 200, background: "radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-                      <motion.div animate={{ y: [-8, 8, -8] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} style={{ fontSize: 56, marginBottom: 16, display: "inline-block", position: "relative", zIndex: 1 }}>🧪</motion.div>
-                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 22, color: "#6D28D9", marginBottom: 10, fontWeight: 800, position: "relative", zIndex: 1 }}>Belum Ada Data AI</div>
-                      <div style={{ fontSize: 14, color: "#7C3AED", fontWeight: 600, lineHeight: 1.7, position: "relative", zIndex: 1 }}>Selesaikan level menulis (Level 8) untuk mendapatkan analisis AI yang menakjubkan!</div>
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: `linear-gradient(135deg, #F5F3FF, #EDE9FE)`, borderRadius: 36, padding: "56px 28px", textAlign: "center", border: "2px solid rgba(168, 85, 247, 0.12)", boxShadow: "0 20px 48px rgba(168,85,247,0.1)", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, background: "radial-gradient(circle, rgba(196,124,253,0.15) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+                      <div style={{ position: "absolute", bottom: -40, left: -60, width: 200, height: 200, background: "radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+                      <motion.div animate={{ y: [-10, 10, -10], scale: [1, 1.05, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} style={{ marginBottom: 24, display: "inline-block", position: "relative", zIndex: 1 }}>
+                        <ChunkySearch size={64} />
+                      </motion.div>
+                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 24, color: "#5B21B6", marginBottom: 12, fontWeight: 700, position: "relative", zIndex: 1 }}>Belum Ada Data AI</div>
+                      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#7C3AED", fontWeight: 700, lineHeight: 1.6, position: "relative", zIndex: 1, maxWidth: 240, margin: "0 auto" }}>Selesaikan level menulis (Level 8) untuk mendapatkan analisis AI yang menakjubkan!</div>
                     </motion.div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -797,10 +898,10 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "center", position: "relative", zIndex: 1 }}>
                           {/* Left: AI Info */}
                           <div>
-                            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} style={{ display: "inline-block", marginBottom: 12 }}>
-                              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${aiRisk.color}20`, padding: "8px 14px", borderRadius: 999, border: `1.5px solid ${aiRisk.color}35` }}>
-                                <span style={{ fontSize: 16 }}>{aiRisk.emoji}</span>
-                                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 13, fontWeight: 800, color: aiRisk.color, letterSpacing: 0.5 }}>{aiRisk.label}</span>
+                            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} style={{ display: "inline-block", marginBottom: 14 }}>
+                              <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "white", padding: "8px 16px", borderRadius: 999, border: `2px solid ${aiRisk.color}20`, boxShadow: `0 8px 16px ${aiRisk.color}12` }}>
+                                {aiRisk.indicator}
+                                <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 14, fontWeight: 700, color: aiRisk.color, letterSpacing: 0.5 }}>{aiRisk.label}</span>
                               </div>
                             </motion.div>
                             <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 22, color: "#1D4F8D", marginBottom: 8, fontWeight: 800, lineHeight: 1.3 }}>AI Sedang Membantu Perkembangan</div>
@@ -870,12 +971,12 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                             {allLetterResults.map((r, i) => {
                               const bgColor = r.isReversal ? "#FF4B4B" : r.isMismatch ? "#FF9600" : "#00B894";
                               return (
-                                <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.05 }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 16, background: `${bgColor}14`, border: `1.5px solid ${bgColor}35`, boxShadow: `0 4px 12px ${bgColor}12` }}>
-                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 17, color: bgColor, fontWeight: 800 }}>{r.targetChar}</span>
-                                  <span style={{ fontSize: 11, color: "#A0A7B5", fontWeight: 600 }}>→</span>
-                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 17, color: bgColor, fontWeight: 800 }}>{r.recognizedChar || "?"}</span>
-                                  {r.isReversal && <span style={{ fontSize: 12 }}>🔄</span>}
-                                  {r.confidence !== null && <span style={{ fontSize: 9, color: "#A0A7B5", fontWeight: 900, marginLeft: 2 }}>{Math.round(r.confidence * 100)}%</span>}
+                                <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.05 }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 20, background: "white", border: `2px solid ${bgColor}15`, boxShadow: `0 6px 16px ${bgColor}08` }}>
+                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.targetChar}</span>
+                                  <span style={{ fontSize: 12, color: "#C4CAD7", fontWeight: 800 }}>→</span>
+                                  <span style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 18, color: bgColor, fontWeight: 800 }}>{r.recognizedChar || "?"}</span>
+                                  {r.isReversal && <ChunkyCycle size={16} color={bgColor} />}
+                                  {r.confidence !== null && <span style={{ fontSize: 10, color: "#A0A7B5", fontWeight: 900, marginLeft: 2 }}>{Math.round(r.confidence * 100)}%</span>}
                                 </motion.div>
                               );
                             })}
@@ -903,94 +1004,89 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                 {seasonData.length > 0 && (
                   <section>
                     <SectionTitle label={`Progress Level · ${viewSeason.label}`} color={p} />
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: `linear-gradient(135deg, ${viewSeason.gradientFrom}12, ${viewSeason.gradientTo}08)`, borderRadius: 32, padding: "28px 20px 24px", border: `1.5px solid ${viewSeason.primary}20`, boxShadow: `0 12px 32px ${viewSeason.primary}08`, position: "relative", overflow: "hidden" }}>
-                      {/* Background glow */}
-                      <div style={{ position: "absolute", bottom: -80, right: -60, width: 280, height: 280, background: `radial-gradient(circle, ${viewSeason.primary}12 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: "rgba(255,255,255,0.98)", borderRadius: 36, padding: "36px 16px 36px", border: "2px solid rgba(255,255,255,0.8)", boxShadow: "0 16px 40px rgba(0,0,0,0.03)", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", bottom: -60, right: -40, width: 220, height: 220, background: `radial-gradient(circle, ${viewSeason.primary}08 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
                       
-                      <svg viewBox="0 0 340 200" width="100%" height="200" style={{ display: "block", position: "relative", zIndex: 1 }}>
-                        {/* Grid lines with glow */}
-                        {[20, 70, 120, 170].map((y, i) => (
-                          <g key={`grid-${i}`}>
-                            <line x1="32" y1={y} x2="320" y2={y} stroke={`${viewSeason.primary}15`} strokeWidth="1.5" />
-                            <text x="26" y={y + 5} fontSize="10" fill="#8B96AA" textAnchor="end" fontFamily="'Fredoka', sans-serif" fontWeight="900">
-                              {3 - i}
-                            </text>
-                          </g>
-                        ))}
-                        <line x1="32" y1="170" x2="320" y2="170" stroke={`${viewSeason.primary}25`} strokeWidth="2" />
-                        
-                        {/* Bars with enhanced styling */}
-                        {Array.from({ length: 8 }, (_, i) => {
-                          const lv = viewSeason.levelRange[0] + i;
-                          const stars = levelStarsMap[lv] ?? -1;
-                          const isPlayed = data.some((d) => d.level_id === lv);
-                          const barH = stars > 0 ? stars * 50 : 0;
-                          const x = 38 + i * 36;
-                          return (
-                            <g key={`level-${lv}`}>
-                              {/* Background bar */}
-                              <rect x={x} y="20" width="24" height="150" rx="8" fill={isPlayed ? viewSeason.bg : "#F8F9FC"} strokeWidth="0" />
-                              
-                              {/* Glow effect for filled bars */}
-                              {barH > 0 && (
-                                <filter id={`barGlow${lv}`}>
-                                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                                  <feMerge>
-                                    <feMergeNode in="coloredBlur" />
-                                    <feMergeNode in="SourceGraphic" />
-                                  </feMerge>
-                                </filter>
-                              )}
-                              
-                              {/* Filled bar */}
-                              {barH > 0 && (
-                                <motion.rect
-                                  x={x}
-                                  y={170 - barH}
-                                  width="24"
-                                  height={barH}
-                                  rx="8"
-                                  fill={`url(#barGrad${viewSeason.key})`}
-                                  initial={{ height: 0, y: 170 }}
-                                  animate={{ height: barH, y: 170 - barH }}
-                                  transition={{ duration: 0.7, delay: i * 0.1, ease: "easeOut" }}
-                                  filter={`url(#barGlow${lv})`}
-                                  style={{ boxShadow: `0 0 16px ${viewSeason.primary}35` }}
-                                />
-                              )}
-                              
-                              {/* Star indicators */}
-                              {stars > 0 && Array.from({ length: stars }, (_, si) => (
-                                <motion.g key={`star-${si}`}>
-                                  <circle cx={x + 6 + si * 8} cy={165 - barH - 10} r="3" fill="#FFD93D" opacity="0.9" />
-                                  <circle cx={x + 6 + si * 8} cy={165 - barH - 10} r="3" fill="none" stroke="#FFB800" strokeWidth="1" opacity="0.6" />
-                                </motion.g>
-                              ))}
-                              
-                              {/* Level label */}
-                              <text x={x + 12} y="190" fontSize="11" fill="#7A8397" textAnchor="middle" fontFamily="'Fredoka', sans-serif" fontWeight="900">
-                                L{lv}
+                      <div style={{ position: "relative", height: 220, width: "100%" }}>
+                        <svg viewBox="0 0 340 220" width="100%" height="220" style={{ display: "block", overflow: "visible" }}>
+                          {/* Grid lines */}
+                          {[30, 70, 110, 150].map((y, i) => (
+                            <g key={`grid-${i}`}>
+                              <line x1="36" y1={y} x2="315" y2={y} stroke={i === 3 ? `${viewSeason.primary}40` : `${viewSeason.primary}12`} strokeWidth={i === 3 ? "2" : "1.5"} strokeDasharray={i === 3 ? "0" : "4 4"} />
+                              <text x="30" y={y + 4} fontSize="11" fill="#A4B1CD" textAnchor="end" fontFamily="'Fredoka', sans-serif" fontWeight="700">
+                                {3 - i}
                               </text>
                             </g>
-                          );
-                        })}
-                        
-                        <defs>
-                          <linearGradient id={`barGrad${viewSeason.key}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={viewSeason.gradientFrom} />
-                            <stop offset="50%" stopColor={viewSeason.primary} />
-                            <stop offset="100%" stopColor={viewSeason.gradientTo} />
-                          </linearGradient>
-                        </defs>
-                      </svg>
+                          ))}
+                          
+                          {/* Bars */}
+                          {Array.from({ length: 8 }, (_, i) => {
+                            const lv = viewSeason.levelRange[0] + i;
+                            const stars = levelStarsMap[lv] ?? -1;
+                            const isPlayed = data.some((d) => d.level_id === lv);
+                            const barH = stars > 0 ? stars * 40 : 0;
+                            const x = 46 + i * 33;
+                            const barW = 20;
+                            const baselineY = 150;
+                            return (
+                              <g key={`level-${lv}`}>
+                                {/* Background bar */}
+                                <rect x={x} y="30" width={barW} height="120" rx="10" fill={isPlayed ? "#FFFFFF" : "#F1F4F9"} stroke={isPlayed ? `${viewSeason.primary}10` : "none"} strokeWidth="1" />
+                                
+                                {/* Filled bar */}
+                                {barH > 0 && (
+                                  <motion.rect
+                                    x={x}
+                                    initial={{ height: 0, y: baselineY }}
+                                    animate={{ height: barH, y: baselineY - barH }}
+                                    transition={{ duration: 0.8, delay: i * 0.05, type: "spring", damping: 15 }}
+                                    width={barW}
+                                    rx="10"
+                                    fill={`url(#barGrad${viewSeason.key})`}
+                                    style={{ filter: `drop-shadow(0 6px 12px ${viewSeason.primary}30)` }}
+                                  />
+                                )}
+                                
+                                {/* Indicators */}
+                                {stars > 0 && Array.from({ length: stars }, (_, si) => (
+                                  <motion.circle
+                                    key={`star-${si}`}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.4 + i * 0.05 + si * 0.1 }}
+                                    cx={x + barW / 2}
+                                    cy={baselineY - (si + 1) * 12 + 4}
+                                    r="3.5"
+                                    fill="white"
+                                  />
+                                ))}
+                                
+                                {/* Label */}
+                                <text x={x + barW / 2} y="175" fontSize="12" fill={isPlayed ? viewSeason.primary : "#A4B1CD"} textAnchor="middle" fontFamily="'Fredoka', sans-serif" fontWeight="800">
+                                  {lv}
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          <defs>
+                            <linearGradient id={`barGrad${viewSeason.key}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={viewSeason.gradientFrom} />
+                              <stop offset="100%" stopColor={viewSeason.primary} />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
                       
-                      {/* Legend */}
-                      <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 16, fontSize: 11, color: "#7A8397", fontWeight: 700, position: "relative", zIndex: 1 }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ width: 12, height: 12, borderRadius: 4, background: `${viewSeason.gradientFrom}` }} /> Stars
+                      {/* Legend moved further down */}
+                      <div style={{ marginTop: 24, display: "flex", alignItems: "center", justifyContent: "center", gap: 20, fontSize: 12, color: "#7A8397", fontWeight: 800 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 14, height: 14, borderRadius: 4, background: viewSeason.primary, boxShadow: `0 2px 6px ${viewSeason.primary}40` }} />
+                          Bintang
                         </span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ width: 12, height: 4, borderRadius: 999, background: "#E8EEF7" }} /> Not played
+                        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 14, height: 14, borderRadius: 4, background: "#F1F4F9", border: "1px solid #E2E8F0" }} />
+                          Belum Main
                         </span>
                       </div>
                     </motion.div>
@@ -1049,35 +1145,36 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                               transition={{ delay: 0.3 + idx * 0.08, type: "spring", stiffness: 180, damping: 12 }}
                               style={{
                                 position: "absolute",
-                                top: 12,
-                                right: 12,
-                                fontSize: 9,
-                                fontWeight: 900,
-                                color: "white",
-                                background: `linear-gradient(135deg, ${viewSeason.primary}, ${viewSeason.gradientTo})`,
-                                padding: "6px 11px",
+                                top: 14,
+                                right: 14,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                                background: "white",
+                                padding: "6px 12px",
                                 borderRadius: 999,
-                                boxShadow: `0 4px 12px ${viewSeason.primary}35`,
-                                letterSpacing: 0.5,
-                                textTransform: "uppercase",
+                                boxShadow: `0 6px 16px ${viewSeason.primary}25`,
+                                border: `1.5px solid ${viewSeason.primary}15`,
                               }}
                             >
-                              🔥 Terbanyak
+                              <ChunkyZap size={14} />
+                              <span style={{ fontSize: 10, fontWeight: 800, color: viewSeason.primary, letterSpacing: 0.5, textTransform: "uppercase" }}>Terbanyak</span>
                             </motion.div>
                           )}
 
                           {/* Letter Display */}
                           <motion.div
-                            animate={isMax ? { scale: [1, 1.08, 1] } : {}}
+                            animate={isMax ? { scale: [1, 1.05, 1] } : {}}
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             style={{
                               fontFamily: "'Fredoka', sans-serif",
-                              fontSize: 72,
+                              fontSize: 64,
                               color: isMax ? viewSeason.primary : "#4A5F7F",
                               lineHeight: 1,
                               fontWeight: 800,
                               position: "relative",
                               zIndex: 1,
+                              marginTop: isMax ? 20 : 0,
                             }}
                           >
                             {letter}
@@ -1186,8 +1283,8 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
               transition={{ delay: 0.5, type: "spring", damping: 20, stiffness: 140 }}
               style={{
                 position: "absolute",
-                bottom: -12,
-                right: 8,
+                bottom: -10,
+                right: 10,
                 zIndex: 1,
                 pointerEvents: "none",
               }}
