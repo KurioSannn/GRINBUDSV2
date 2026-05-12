@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Trophy, Sparkles, CheckCircle2, ShieldCheck, PawPrint, Lock, Star, Target, Pencil } from "lucide-react";
 import { AVATARS } from "./ChildSetupScreen";
-import { evaluateAchievements, UserStats, UnlockedReward } from "@/lib/achievements";
+import { evaluateAchievements, UserStats } from "@/lib/achievements";
 
 interface ChildProfileProps {
   userName: string;
@@ -35,22 +35,20 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
   };
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#F7F7F7", overflowY: "auto", paddingBottom: 140, position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#F7FAFC", overflowY: "auto", overflowX: "hidden", paddingBottom: 140, position: "relative", width: "100%" }}>
       {/* HEADER */}
       <div style={{
-        background: "linear-gradient(155deg, #f0fde4 0%, #d7f5b1 100%)",
-        padding: "110px 24px 36px", position: "relative",
+        background: "linear-gradient(155deg, #ECFFE2 0%, #D8F8B9 58%, #E9F6FF 100%)",
+        padding: "104px 24px 52px", position: "relative",
+        minHeight: 374,
+        boxSizing: "border-box",
         borderBottomLeftRadius: 40, borderBottomRightRadius: 40,
-        boxShadow: "0 12px 32px rgba(88,204,2,0.12)"
+        boxShadow: "0 14px 34px rgba(80,94,120,0.12)",
+        overflow: "hidden",
       }}>
-        {/* Decorative Floating Accents */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          style={{ position: "absolute", top: "30%", left: "5%", opacity: 0.15, pointerEvents: "none" }}
-        >
-          <Sparkles size={200} color="#58CC02" />
-        </motion.div>
+        <div style={{ position: "absolute", top: -80, right: -70, width: 210, height: 210, borderRadius: "50%", background: "rgba(255,107,157,0.14)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -80, left: -60, width: 190, height: 190, borderRadius: "50%", background: "rgba(88,204,2,0.13)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 86, left: 34, width: 54, height: 18, borderRadius: 999, background: "rgba(255,255,255,0.55)", pointerEvents: "none" }} />
         
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", zIndex: 2 }}>
           {/* Avatar Container */}
@@ -58,9 +56,9 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
             <motion.div 
               whileHover={{ scale: 1.05 }}
               style={{ 
-                width: 100, height: 100, borderRadius: 32, background: "white", 
+                width: 106, height: 106, borderRadius: 34, background: "white", 
                 display: "flex", alignItems: "center", justifyContent: "center", 
-                boxShadow: "0 16px 40px rgba(88,204,2,0.22)", 
+                boxShadow: "0 18px 38px rgba(88,204,2,0.20), 0 8px 18px rgba(28,176,246,0.10)", 
                 border: "4px solid white", position: "relative", zIndex: 2 
               }}
             >
@@ -74,7 +72,7 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               style={{ 
                 position: "absolute", bottom: -6, right: -6, 
-                background: "#FFD93D", width: 38, height: 38, borderRadius: 14, 
+                background: "linear-gradient(135deg, #FFD93D, #FF9F43)", width: 40, height: 40, borderRadius: 15, 
                 display: "flex", alignItems: "center", justifyContent: "center", 
                 border: "4px solid white", boxShadow: "0 8px 16px rgba(0,0,0,0.15)",
                 zIndex: 3
@@ -92,8 +90,8 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
                 onChange={(e) => setTempName(e.target.value)}
                 style={{
                   fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 22, color: "#3C3C3C",
-                  background: "white", border: "3px solid #58CC02", borderRadius: 18, padding: "8px 16px",
-                  textAlign: "center", width: 200, outline: "none", boxShadow: "0 8px 24px rgba(88,204,2,0.1)"
+                  background: "white", border: "3px solid #58CC02", borderRadius: 20, padding: "10px 16px",
+                  textAlign: "center", width: 220, outline: "none", boxShadow: "0 10px 24px rgba(88,204,2,0.14)"
                 }}
                 onBlur={handleSaveName}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
@@ -105,37 +103,38 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
               style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }} 
               onClick={() => setIsEditingName(true)}
             >
-              <h1 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 32, color: "#3C3C3C", margin: 0, lineHeight: 1 }}>
+              <h1 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 34, color: "#26324D", margin: 0, lineHeight: 1 }}>
                 {userName || "Pemain"}
               </h1>
-              <div style={{ background: "#E2F9DB", padding: "4px 12px", borderRadius: 10, color: "#58CC02", display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: 800, fontFamily: "'Nunito', sans-serif" }}>Ubah Nama</span>
+              <div style={{ background: "white", padding: "7px 13px", borderRadius: 999, color: "#58CC02", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 6px 16px rgba(88,204,2,0.14)", border: "1px solid rgba(88,204,2,0.14)" }}>
+                <span style={{ fontSize: 13, fontWeight: 900, fontFamily: "'Nunito', sans-serif" }}>Ganti Nama</span>
                 <Pencil size={14} strokeWidth={2.5} />
               </div>
             </motion.div>
           )}
           
           <div style={{ marginTop: 12, display: "flex", gap: 12 }}>
-            <div style={{ background: "rgba(255,255,255,0.6)", padding: "6px 16px", borderRadius: 99, display: "flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,0.8)" }}>
+            <div style={{ background: "rgba(255,255,255,0.84)", padding: "8px 16px", borderRadius: 99, display: "flex", alignItems: "center", gap: 7, border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 6px 16px rgba(80,94,120,0.06)" }}>
               <Star size={16} color="#FFD93D" fill="#FFD93D" strokeWidth={2.5} />
-              <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#555", fontWeight: 900 }}>{stats.total_stars}</span>
+              <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#3C4A66", fontWeight: 900 }}>{stats.total_stars}</span>
             </div>
-            <div style={{ background: "rgba(255,255,255,0.6)", padding: "6px 16px", borderRadius: 99, display: "flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,0.8)" }}>
+            <div style={{ background: "rgba(255,255,255,0.84)", padding: "8px 16px", borderRadius: 99, display: "flex", alignItems: "center", gap: 7, border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 6px 16px rgba(80,94,120,0.06)" }}>
               <Target size={16} color="#58CC02" strokeWidth={2.5} />
-              <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#555", fontWeight: 900 }}>{stats.missions_completed} Misi</span>
+              <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#3C4A66", fontWeight: 900 }}>{stats.missions_completed} Misi</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* TABS */}
-      <div style={{ padding: "28px 24px 0" }}>
+      <div style={{ padding: "36px 24px 0", width: "100%", boxSizing: "border-box" }}>
         <div style={{ 
           display: "flex", 
-          background: "#E8E8E8", 
+          background: "#EAF0F7", 
           borderRadius: 24, 
           padding: 6,
-          position: "relative"
+          position: "relative",
+          boxShadow: "inset 0 0 0 1px #E2E8F0",
         }}>
           <motion.div
             layoutId="tab-indicator"
@@ -181,7 +180,7 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
       </div>
 
       {/* CONTENT */}
-      <div style={{ padding: "24px", flex: 1 }}>
+      <div style={{ padding: "28px 24px 24px", flex: 1, width: "100%", boxSizing: "border-box" }}>
         <AnimatePresence mode="wait">
           {activeTab === "profile" ? (
             <motion.div
@@ -189,12 +188,22 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               style={{ display: "flex", flexDirection: "column", gap: 20 }}
             >
-              <div style={{ background: "white", borderRadius: 24, padding: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
-                <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 18, color: "#3C3C3C", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                  <Sparkles size={20} color="#CE82FF" /> Pilih Avatar
+              <div style={{ background: "white", borderRadius: 30, padding: "20px", boxShadow: "0 12px 30px rgba(31,41,55,0.07)", border: "1.5px solid #EEF2F7" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 20, color: "#26324D", display: "flex", alignItems: "center", gap: 8 }}>
+                      <Sparkles size={20} color="#CE82FF" /> Ganti Profil
+                    </div>
+                    <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 12, color: "#8A94A8", marginTop: 4 }}>
+                      Pilih avatar favorit si kecil.
+                    </div>
+                  </div>
+                  <div style={{ padding: "6px 10px", borderRadius: 999, background: "#F3E8FF", color: "#9333EA", fontSize: 11, fontWeight: 900, fontFamily: "'Nunito', sans-serif", whiteSpace: "nowrap" }}>
+                    {unlockedRewards.length} hadiah
+                  </div>
                 </div>
                 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
                   {AVATARS.map((avatar) => {
                     const isLocked = avatar.unlockBy && !unlockedRewards.some(r => r.id === avatar.unlockBy);
                     const isSel = userAvatar === avatar.id && !isLocked;
@@ -204,25 +213,35 @@ export function ChildProfile({ userName, setUserName, userAvatar, setUserAvatar,
                         whileTap={!isLocked ? { scale: 0.95 } : {}}
                         onClick={() => { if (!isLocked) setUserAvatar(avatar.id); }}
                         style={{
-                          borderRadius: 20, padding: "16px",
-                          background: isLocked ? "#F5F5F5" : avatar.bg, border: `3px solid ${isSel ? avatar.ringColor : "transparent"}`,
+                          minHeight: 142,
+                          borderRadius: 26, padding: "14px 10px 16px",
+                          background: isLocked ? "#F8FAFC" : `linear-gradient(155deg, ${avatar.bg} 0%, #FFFFFF 84%)`, border: `2.5px solid ${isSel ? avatar.ringColor : "#EEF2F7"}`,
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-                          boxShadow: isSel ? `0 6px 0 ${avatar.ringColor}` : "0 4px 0 #E0E0E0",
+                          boxShadow: isSel ? `0 7px 0 ${avatar.ringColor}, 0 14px 24px ${avatar.ringColor}24` : "0 5px 0 #E6ECF3, 0 10px 18px rgba(31,41,55,0.04)",
                           cursor: isLocked ? "not-allowed" : "pointer", position: "relative",
-                          opacity: isLocked ? 0.6 : (isSel ? 1 : 0.7)
+                          opacity: isLocked ? 0.64 : 1,
+                          overflow: "hidden",
                         }}
                       >
-                        <div style={{ width: 48, height: 48, filter: isLocked ? "opacity(0.85)" : "none" }}>{avatar.icon}</div>
-                        <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14, color: isLocked ? "#666" : (isSel ? avatar.ringColor : "#666") }}>
+                        <div style={{ position: "absolute", top: -28, right: -28, width: 74, height: 74, borderRadius: "50%", background: isSel ? `${avatar.ringColor}20` : "rgba(255,255,255,0.55)", pointerEvents: "none" }} />
+                        <div style={{ width: 64, height: 64, borderRadius: 22, background: isLocked ? "#FFFFFFAA" : "rgba(255,255,255,0.78)", display: "flex", alignItems: "center", justifyContent: "center", filter: isLocked ? "grayscale(0.3) opacity(0.85)" : "none", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.8)", position: "relative", zIndex: 1 }}>
+                          <div style={{ width: 50, height: 50 }}>{avatar.icon}</div>
+                        </div>
+                        <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 14, color: isLocked ? "#667085" : (isSel ? avatar.ringColor : "#526078"), position: "relative", zIndex: 1 }}>
                           {avatar.label}
                         </span>
+                        {!isLocked && (
+                          <span style={{ fontSize: 10, fontWeight: 900, color: isSel ? avatar.ringColor : "#9AA4B2", fontFamily: "'Nunito', sans-serif", background: isSel ? `${avatar.ringColor}14` : "#F8FAFC", padding: "4px 8px", borderRadius: 999, position: "relative", zIndex: 1 }}>
+                            {isSel ? "Sedang dipakai" : "Pilih avatar"}
+                          </span>
+                        )}
                         {isLocked && (
                           <div style={{ position: "absolute", top: 8, right: 8, color: "#999", background: "white", borderRadius: "50%", padding: 2, boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
                             <Lock size={12} />
                           </div>
                         )}
                         {isSel && !isLocked && (
-                          <div style={{ position: "absolute", top: -8, right: -8, background: "#58CC02", color: "white", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
+                          <div style={{ position: "absolute", top: 10, right: 10, background: avatar.ringColor, color: "white", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white", boxShadow: `0 4px 10px ${avatar.ringColor}40`, zIndex: 2 }}>
                             <CheckCircle2 size={14} />
                           </div>
                         )}

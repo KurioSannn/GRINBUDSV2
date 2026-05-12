@@ -491,13 +491,16 @@ function LevelNode({ level, position, onClick }: {
 }
 
 // ── SIDE DRAWER ──
-function SideDrawer({ isOpen, onClose, onMenuClick }: { isOpen: boolean; onClose: () => void; onMenuClick?: (label: string) => void }) {
+function SideDrawer({ isOpen, onClose, onMenuClick, userName = "Pemain", userAvatar }: { isOpen: boolean; onClose: () => void; onMenuClick?: (label: string) => void; userName?: string; userAvatar?: string }) {
   const menuItems = [
     { label: "Profil Anak", color: "#58CC02", icon: <User size={20} /> },
     { label: "Pencapaian",  color: "#FFD93D", icon: <Trophy size={20} /> },
     { label: "Dashboard Ortu", color: "#1CB0F6", icon: <BarChart size={20} /> },
     { label: "Pengaturan", color: "#CE82FF", icon: <Settings size={20} /> },
   ];
+  
+  const selectedAvatarItem = AVATARS.find(a => a.id === userAvatar);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -514,8 +517,10 @@ function SideDrawer({ isOpen, onClose, onMenuClick }: { isOpen: boolean; onClose
           >
             {/* Profile header */}
             <div style={{ padding: "56px 24px 28px", background: "linear-gradient(155deg,#f0fde4,#d7f5b1)", borderRadius: "36px 0 0 0", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "white", margin: "0 auto 14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, boxShadow: "0 8px 24px rgba(88,204,2,0.2)", position: "relative", zIndex: 2, color: "#58CC02" }}><PawPrint size={36} /></div>
-              <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 26, color: "#3C3C3C", position: "relative", zIndex: 2 }}>Budi</div>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "white", margin: "0 auto 14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, boxShadow: "0 8px 24px rgba(88,204,2,0.2)", position: "relative", zIndex: 2, color: "#58CC02" }}>
+                {selectedAvatarItem ? <div style={{ width: 44, height: 44 }}>{selectedAvatarItem.icon}</div> : <PawPrint size={36} />}
+              </div>
+              <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 26, color: "#3C3C3C", position: "relative", zIndex: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</div>
               <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: "#777", fontWeight: 700, marginTop: 2, position: "relative", zIndex: 2 }}>Kelas 1 SD · 7 Tahun</div>
             </div>
             {/* Menu items */}
@@ -535,6 +540,11 @@ function SideDrawer({ isOpen, onClose, onMenuClick }: { isOpen: boolean; onClose
                   <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 16, color: "#3C3C3C" }}>{item.label}</span>
                 </motion.button>
               ))}
+              
+              <div style={{ flex: 1 }} />
+              <div style={{ textAlign: "center", padding: "16px 0", fontFamily: "'Nunito', sans-serif", fontSize: 12, color: "#B0B0B0", fontWeight: 800, letterSpacing: 0.5 }}>
+                GrinBuds v2.0
+              </div>
             </div>
           </motion.div>
         </>
@@ -987,6 +997,8 @@ export default function HomePage() {
           <SideDrawer 
             isOpen={isDrawerOpen} 
             onClose={() => setIsDrawerOpen(false)} 
+            userName={userName}
+            userAvatar={userAvatar}
             onMenuClick={(label) => {
               if (label === "Profil Anak") {
                 setChildProfileTab("profile");
