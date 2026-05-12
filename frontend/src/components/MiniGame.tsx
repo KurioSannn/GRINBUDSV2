@@ -118,8 +118,8 @@ function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: 
                <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#E8E0FF", padding: "6px 12px", borderRadius: 12, color: "#9b59b6", fontSize: 13, fontWeight: 900, letterSpacing: 0.5 }}>
                   <Star size={14} fill="#9b59b6" /> MODE PILIHAN
                </div>
-               <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, fontWeight: 700, color: "#2A3B5C", marginTop: 8, display: "flex", alignItems: "center", gap: 8, lineHeight: 1 }}>
-                  Level {level} <Target size={26} color="#1CB0F6" />
+               <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, fontWeight: 700, color: "#2A3B5C", marginTop: 8, display: "flex", alignItems: "center", gap: 8, lineHeight: 0.8 }}>
+                  Level {level} <Target size={26} color="#1CB0F6" style={{ marginBottom: 2 }} />
                </div>
             </div>
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }} onClick={onClose} style={{ width: 44, height: 44, borderRadius: "50%", background: "white", boxShadow: "0 4px 8px rgba(0,0,0,0.06)", border: "none", color: "#888", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -165,7 +165,17 @@ function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: 
             }}
           >
             <div style={{ position: "absolute", inset: -20, background: "#b4f8a4", opacity: 0.5, filter: "blur(24px)", borderRadius: "50%", zIndex: -1 }} />
-            <span style={{ fontSize: 130, fontFamily: "'Fredoka', sans-serif", fontWeight: 700, color: "#58CC02", lineHeight: 1, textShadow: "0 6px 0 rgba(88,204,2,0.15)" }}>
+            <span style={{ 
+              fontSize: 130, 
+              fontFamily: "'Fredoka', sans-serif", 
+              fontWeight: 700, 
+              color: "#58CC02", 
+              textShadow: "0 6px 0 rgba(88,204,2,0.15)", 
+              marginBottom: 10,
+              display: "inline-block",
+              lineHeight: "normal",
+              transform: "rotate(0deg)" // Memastikan benar-benar tegak
+            }}>
               {questions[currentIndex]}
             </span>
           </motion.div>
@@ -194,7 +204,12 @@ function MultipleChoiceGame({ level, onComplete, onClose, playSound }: { level: 
                     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 >
-                  {opt}
+                  <span style={{ 
+                    marginBottom: 6, 
+                    display: "inline-block", 
+                    lineHeight: "normal",
+                    transform: "rotate(0deg)" 
+                  }}>{opt}</span>
                 </motion.button>
               );
             })}
@@ -381,8 +396,8 @@ function DrawingGame({ level, onComplete, onClose, playSound }: { level: number;
                <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#E8E0FF", padding: "6px 12px", borderRadius: 12, color: "#9b59b6", fontSize: 13, fontWeight: 900, letterSpacing: 0.5 }}>
                   <Pencil size={14} fill="#9b59b6" /> MODE MENULIS
                </div>
-               <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, fontWeight: 700, color: "#2A3B5C", marginTop: 8, display: "flex", alignItems: "center", gap: 8, lineHeight: 1 }}>
-                  Level {level} <Pencil size={26} color="#1CB0F6" />
+               <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 32, fontWeight: 700, color: "#2A3B5C", marginTop: 8, display: "flex", alignItems: "center", gap: 8, lineHeight: 0.8 }}>
+                  Level {level} <Pencil size={26} color="#1CB0F6" style={{ marginBottom: 2 }} />
                </div>
             </div>
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }} onClick={onClose} style={{ width: 44, height: 44, borderRadius: "50%", background: "white", boxShadow: "0 4px 8px rgba(0,0,0,0.06)", border: "none", color: "#888", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -411,7 +426,7 @@ function DrawingGame({ level, onComplete, onClose, playSound }: { level: number;
             <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 24, color: "#2A3B5C", fontWeight: 800, marginBottom: 4, textShadow: "0 2px 4px rgba(255,255,255,0.8)" }}>
                Tulis huruf ini:
             </div>
-            <div style={{ fontSize: 100, fontFamily: "'Fredoka', sans-serif", fontWeight: 700, color: "#58CC02", lineHeight: 1, textShadow: "0 5px 0 rgba(88,204,2,0.15)" }}>
+            <div style={{ fontSize: 100, fontFamily: "'Fredoka', sans-serif", fontWeight: 700, color: "#58CC02", lineHeight: 1, textShadow: "0 5px 0 rgba(88,204,2,0.15)", marginBottom: 10 }}>
               {DRAW_LETTERS[currentIndex]}
             </div>
           </div>
