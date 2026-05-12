@@ -11,7 +11,7 @@ export const AVATARS = [
   {
     id: "bear", label: "Beruang", bg: "#FFE0EE", ringColor: "#FF6B9D",
     icon: (
-      <svg viewBox="0 0 64 64" fill="none">
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
         <circle cx="32" cy="36" r="20" fill="#FFB3D1"/>
         <circle cx="17" cy="20" r="8" fill="#FFB3D1"/>
         <circle cx="47" cy="20" r="8" fill="#FFB3D1"/>
@@ -29,7 +29,7 @@ export const AVATARS = [
   {
     id: "bunny", label: "Kelinci", bg: "#EDD8FF", ringColor: "#CE82FF",
     icon: (
-      <svg viewBox="0 0 64 64" fill="none">
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
         <ellipse cx="24" cy="18" rx="6" ry="14" fill="#D8B4FF"/>
         <ellipse cx="40" cy="18" rx="6" ry="14" fill="#D8B4FF"/>
         <ellipse cx="24" cy="18" rx="3.5" ry="11" fill="#FFB3D1"/>
@@ -47,7 +47,7 @@ export const AVATARS = [
   {
     id: "cat", label: "Kucing", bg: "#FFF3B0", ringColor: "#FFD93D",
     icon: (
-      <svg viewBox="0 0 64 64" fill="none">
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
         <polygon points="13,30 21,14 28,26" fill="#FFE080"/>
         <polygon points="51,30 43,14 36,26" fill="#FFE080"/>
         <circle cx="32" cy="36" r="18" fill="#FFE080"/>
@@ -67,7 +67,7 @@ export const AVATARS = [
   {
     id: "frog", label: "Katak", bg: "#C8F59A", ringColor: "#58CC02",
     icon: (
-      <svg viewBox="0 0 64 64" fill="none">
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
         <circle cx="20" cy="20" r="9" fill="#82E05A"/>
         <circle cx="44" cy="20" r="9" fill="#82E05A"/>
         <circle cx="32" cy="37" r="20" fill="#82E05A"/>
@@ -81,6 +81,60 @@ export const AVATARS = [
       </svg>
     ),
   },
+  {
+    id: "owl", label: "Burung Hantu", bg: "#E0F7FA", ringColor: "#00BCD4", unlockBy: "avatar_super_jenius",
+    icon: (
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
+        <circle cx="32" cy="36" r="20" fill="#4DD0E1"/>
+        <circle cx="24" cy="32" r="8" fill="white"/>
+        <circle cx="40" cy="32" r="8" fill="white"/>
+        <circle cx="24" cy="32" r="3" fill="#3C3C3C"/>
+        <circle cx="40" cy="32" r="3" fill="#3C3C3C"/>
+        <path d="M30 40 L34 40 L32 44 Z" fill="#FFA000"/>
+      </svg>
+    ),
+  },
+  {
+    id: "tiger", label: "Harimau", bg: "#FFF3E0", ringColor: "#FF9800", unlockBy: "avatar_petualang",
+    icon: (
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
+        <circle cx="32" cy="36" r="20" fill="#FFB74D"/>
+        <path d="M12 24 L20 28 L24 20 Z" fill="#FFB74D"/>
+        <path d="M52 24 L44 28 L40 20 Z" fill="#FFB74D"/>
+        <circle cx="26" cy="33" r="3" fill="#3C3C3C"/>
+        <circle cx="38" cy="33" r="3" fill="#3C3C3C"/>
+        <ellipse cx="32" cy="40" rx="6" ry="4" fill="#FFE0B2"/>
+        <circle cx="32" cy="38" r="1.5" fill="#3C3C3C"/>
+        <path d="M32 40 L32 43" stroke="#3C3C3C" strokeWidth="1.5"/>
+      </svg>
+    ),
+  },
+  {
+    id: "star_avatar", label: "Si Bintang", bg: "#FFFDE7", ringColor: "#FFD93D", unlockBy: "avatar_kolektor",
+    icon: (
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
+        <path d="M32 10 L38 25 L54 25 L41 34 L46 50 L32 40 L18 50 L23 34 L10 25 L26 25 Z" fill="#FFD93D"/>
+        <circle cx="26" cy="30" r="3" fill="#3C3C3C"/>
+        <circle cx="38" cy="30" r="3" fill="#3C3C3C"/>
+        <path d="M28 38 Q32 42 36 38" stroke="#3C3C3C" strokeWidth="2.5" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
+    id: "dragon", label: "Naga Mitos", bg: "#FCE4EC", ringColor: "#FF4081", unlockBy: "avatar_legenda",
+    icon: (
+      <svg viewBox="0 0 64 64" fill="none" width="100%" height="100%">
+        <circle cx="32" cy="36" r="20" fill="#FF80AB"/>
+        <path d="M18 20 Q24 10 30 20 Z" fill="#FF4081"/>
+        <path d="M46 20 Q40 10 34 20 Z" fill="#FF4081"/>
+        <circle cx="25" cy="30" r="3" fill="#3C3C3C"/>
+        <circle cx="39" cy="30" r="3" fill="#3C3C3C"/>
+        <path d="M26 42 Q32 48 38 42" stroke="#FF4081" strokeWidth="3" strokeLinecap="round" fill="none"/>
+        <circle cx="29" cy="38" r="1.5" fill="#FF4081"/>
+        <circle cx="35" cy="38" r="1.5" fill="#FF4081"/>
+      </svg>
+    ),
+  }
 ];
 
 const InputField = ({ label, type, placeholder, value, onChange }: {
