@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { generateFinalAssessment, type FinalAiAssessment } from "@/lib/finalAssessmentApi";
 import { ChevronLeft, ChevronRight, Calendar, Lock, Target, Sparkles } from "lucide-react";
 
 // ── PREMIUM GLOSSY AI MASCOT ──
@@ -354,6 +355,7 @@ interface GameResult {
   rata_waktu: number;
   detail_error: Array<{ letter: string; wrongAnswer?: string; timeMs: number }>;
   dyslexia_assessment?: DyslexiaAssessmentData | null;
+  final_ai_assessment?: FinalAiAssessment | null;
   created_at: string;
 }
 
@@ -411,6 +413,7 @@ const SEASONS = [
 
 const getSeasonByLevel = (level: number) => SEASONS.find((s) => level >= s.levelRange[0] && level <= s.levelRange[1]) ?? SEASONS[0];
 const getSeasonIndex = (key: string) => SEASONS.findIndex((s) => s.key === key);
+const MIN_LEVELS_FOR_AI_ANALYSIS = 8;
 
 function SectionTitle({ label, color }: { label: string; color: string }) {
   return (
@@ -609,7 +612,7 @@ function PremiumHeader({
                 }}
               >
                 <div style={{ width: 34, height: 34, background: active ? s.bg : `${s.primary}12`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", transform: active ? "scale(1.1)" : "scale(1)", transition: "transform 0.3s ease" }}>
-                  {React.cloneElement(s.icon as React.ReactElement, { size: 16 })}
+                  {React.cloneElement(s.icon as React.ReactElement<{ size?: number }>, { size: 16 })}
                 </div>
                 <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 11, color: active ? s.primary : "rgba(255, 255, 255, 0.75)", letterSpacing: 0.3 }}>
                   {s.label.split(" ").pop()}
@@ -638,6 +641,8 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const [viewSeasonKey, setViewSeasonKey] = useState<string>(activeSeason.key);
   const [data, setData] = useState<GameResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatedFinalAssessment, setGeneratedFinalAssessment] = useState<FinalAiAssessment | null>(null);
+  const [generatingFinalAssessment, setGeneratingFinalAssessment] = useState(false);
 
   useEffect(() => {
     setViewSeasonKey(getSeasonByLevel(currentLevel).key);
@@ -701,7 +706,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
 
   const seasonProgress = SEASONS.map((s) => {
     const [lo, hi] = s.levelRange;
-    const sData = data.filter((d) => d.level_id >= lo && d.level_id <= hi);
+    const sData = data.filter((d) => d.level_id >= lo && d.level_id <= hi && d.stars > 0);
     const completed = new Set(sData.map((d) => d.level_id)).size;
     return { ...s, completed, total: hi - lo + 1 };
   });
@@ -712,19 +717,99 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
   const isViewingActive = viewSeasonKey === activeSeason.key;
   const p = viewSeason.primary;
 
-  const aiResults = useMemo(() => data.filter((d) => d.dyslexia_assessment).map((d) => d.dyslexia_assessment!), [data]);
-  const hasAiData = aiResults.length > 0;
+  const completedUniqueLevelCount = useMemo(() => new Set(data.filter((d) => d.stars > 0).map((d) => d.level_id)).size, [data]);
+  const hasMinimumLevelsForAi = completedUniqueLevelCount >= MIN_LEVELS_FOR_AI_ANALYSIS;
+  const rawAiResults = useMemo(() => data.filter((d) => d.dyslexia_assessment).map((d) => d.dyslexia_assessment!), [data]);
+  const latestAiAssessment = useMemo(() => {
+    return [...data]
+      .filter((d) => d.dyslexia_assessment)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.dyslexia_assessment ?? null;
+  }, [data]);
+  const latestStoredFinalAssessment = useMemo(() => {
+    return [...data]
+      .filter((d) => d.final_ai_assessment)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.final_ai_assessment ?? null;
+  }, [data]);
+  const finalAssessment = latestStoredFinalAssessment ?? generatedFinalAssessment;
+  const aiResults = hasMinimumLevelsForAi ? rawAiResults : [];
+  const hasAiData = hasMinimumLevelsForAi && (aiResults.length > 0 || !!finalAssessment);
+  const levelsRemainingForAi = Math.max(0, MIN_LEVELS_FOR_AI_ANALYSIS - completedUniqueLevelCount);
   const totalReversals = aiResults.reduce((s, a) => s + a.reversalCount, 0);
   const totalMismatches = aiResults.reduce((s, a) => s + a.mismatchCount, 0);
   const totalLettersAnalyzed = aiResults.reduce((s, a) => s + a.totalAnalyzed, 0);
   const avgProbability = aiResults.length > 0 ? aiResults.reduce((s, a) => s + a.overallProbability, 0) / aiResults.length : 0;
   const allLetterResults = aiResults.flatMap((a) => a.perLetterResults);
+  const aggregateAiRiskLevel =
+    totalReversals >= 3 || avgProbability > 0.65
+      ? "tinggi"
+      : totalReversals >= 1 || avgProbability > 0.45
+        ? "sedang"
+        : "rendah";
+  const finalAiRiskLevel = finalAssessment?.riskLevel ?? latestAiAssessment?.riskLevel ?? aggregateAiRiskLevel;
 
-  const aiRisk = totalReversals >= 3 || avgProbability > 0.65
-    ? { level: "tinggi" as const, color: "#FF4B4B", label: "Risiko Tinggi", desc: "AI mendeteksi pola pembalikan huruf yang konsisten. Sangat disarankan konsultasi dengan profesional.", indicator: <IndicatorDot color="#FF4B4B" /> }
-    : totalReversals >= 1 || avgProbability > 0.45
-      ? { level: "sedang" as const, color: "#FF9600", label: "Perlu Perhatian", desc: "Ada beberapa pola yang perlu dipantau. Lanjutkan latihan dan perhatikan perkembangan.", indicator: <IndicatorDot color="#FF9600" /> }
-      : { level: "rendah" as const, color: "#00B894", label: "Risiko Rendah", desc: "AI tidak mendeteksi tanda-tanda signifikan disleksia. Anak menunjukkan perkembangan yang baik!", indicator: <IndicatorDot color="#00B894" /> };
+  const aiRisk = finalAiRiskLevel === "tinggi"
+    ? { level: "tinggi" as const, color: "#FF4B4B", label: "Risiko Tinggi", desc: finalAssessment?.summary || latestAiAssessment?.summary || "AI mendeteksi pola pembalikan huruf yang konsisten. Sangat disarankan konsultasi dengan dokter atau profesional.", indicator: <IndicatorDot color="#FF4B4B" /> }
+    : finalAiRiskLevel === "sedang"
+      ? { level: "sedang" as const, color: "#FF9600", label: "Perlu Perhatian", desc: finalAssessment?.summary || latestAiAssessment?.summary || "Ada beberapa pola yang perlu dipantau. Lanjutkan latihan dan perhatikan perkembangan.", indicator: <IndicatorDot color="#FF9600" /> }
+      : { level: "rendah" as const, color: "#00B894", label: "Risiko Rendah", desc: finalAssessment?.summary || latestAiAssessment?.summary || "AI tidak mendeteksi tanda-tanda signifikan disleksia. Anak menunjukkan perkembangan yang baik!", indicator: <IndicatorDot color="#00B894" /> };
+  const dashboardConclusion = hasAiData
+    ? {
+        status: aiRisk.label,
+        color: aiRisk.color,
+        desc: aiRisk.desc,
+        icon: aiRisk.level === "tinggi"
+          ? <ChunkyFace size={40} type="frown" />
+          : aiRisk.level === "sedang"
+            ? <ChunkyFace size={40} type="meh" />
+            : <ChunkyFace size={40} type="smile" />,
+    }
+    : risk;
+
+  useEffect(() => {
+    if (!isOpen || !hasMinimumLevelsForAi || rawAiResults.length === 0 || latestStoredFinalAssessment || generatedFinalAssessment || generatingFinalAssessment) return;
+
+    let cancelled = false;
+    const createFinalAssessment = async () => {
+      setGeneratingFinalAssessment(true);
+      const assessment = await generateFinalAssessment({
+        completed_levels: completedUniqueLevelCount,
+        game_results: data as unknown as Array<Record<string, unknown>>,
+        dyslexia_assessments: rawAiResults as unknown as Array<Record<string, unknown>>,
+      });
+
+      if (!assessment || cancelled) {
+        setGeneratingFinalAssessment(false);
+        return;
+      }
+
+      setGeneratedFinalAssessment(assessment);
+
+      const target = [...data]
+        .filter((d) => d.dyslexia_assessment)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+      if (target) {
+        const { error } = await supabase
+          .from("game_results")
+          .update({ final_ai_assessment: assessment })
+          .eq("id", target.id);
+
+        if (!error) {
+          setData((prev) => prev.map((item) => item.id === target.id ? { ...item, final_ai_assessment: assessment } : item));
+        } else {
+          console.warn("Gagal simpan final_ai_assessment:", error);
+        }
+      }
+
+      if (!cancelled) setGeneratingFinalAssessment(false);
+    };
+
+    createFinalAssessment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [completedUniqueLevelCount, data, generatedFinalAssessment, generatingFinalAssessment, hasMinimumLevelsForAi, isOpen, latestStoredFinalAssessment, rawAiResults]);
 
   return (
     <AnimatePresence>
@@ -883,8 +968,14 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                       <motion.div animate={{ y: [-10, 10, -10], scale: [1, 1.05, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} style={{ marginBottom: 24, display: "inline-block", position: "relative", zIndex: 1 }}>
                         <ChunkySearch size={64} />
                       </motion.div>
-                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 24, color: "#5B21B6", marginBottom: 12, fontWeight: 700, position: "relative", zIndex: 1 }}>Belum Ada Data AI</div>
-                      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#7C3AED", fontWeight: 700, lineHeight: 1.6, position: "relative", zIndex: 1, maxWidth: 240, margin: "0 auto" }}>Selesaikan level menulis (Level 8) untuk mendapatkan analisis AI yang menakjubkan!</div>
+                      <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 24, color: "#5B21B6", marginBottom: 12, fontWeight: 700, position: "relative", zIndex: 1 }}>
+                        {hasMinimumLevelsForAi ? "Data AI Belum Tersedia" : "Analisis Terkunci"}
+                      </div>
+                      <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: "#7C3AED", fontWeight: 700, lineHeight: 1.6, position: "relative", zIndex: 1, maxWidth: 260, margin: "0 auto" }}>
+                        {hasMinimumLevelsForAi
+                          ? "Selesaikan level menulis agar hasil analisis dari backend dapat tersimpan dan ditampilkan di sini."
+                          : `Selesaikan ${levelsRemainingForAi} level lagi untuk membuka kesimpulan AI setelah minimal ${MIN_LEVELS_FOR_AI_ANALYSIS} level selesai.`}
+                      </div>
                     </motion.div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -990,11 +1081,11 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                       )}
 
                       {/* Traditional assessment */}
-                      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ background: `${risk.color}10`, border: `1.5px solid ${risk.color}30`, borderRadius: 28, padding: "22px 20px", display: "flex", alignItems: "center", gap: 18, boxShadow: `0 10px 24px ${risk.color}12` }}>
-                        <div style={{ flexShrink: 0, width: 60, height: 60, borderRadius: "50%", background: `${risk.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>{risk.icon}</div>
+                      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ background: `${dashboardConclusion.color}10`, border: `1.5px solid ${dashboardConclusion.color}30`, borderRadius: 28, padding: "22px 20px", display: "flex", alignItems: "center", gap: 18, boxShadow: `0 10px 24px ${dashboardConclusion.color}12` }}>
+                        <div style={{ flexShrink: 0, width: 60, height: 60, borderRadius: "50%", background: `${dashboardConclusion.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>{dashboardConclusion.icon}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: risk.color, fontWeight: 800 }}>Penilaian Tradisional: {risk.status}</div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: "#7A8397", marginTop: 4, lineHeight: 1.5 }}>{risk.desc}</div>
+                          <div style={{ fontFamily: "'Fredoka', sans-serif", fontSize: 15, color: dashboardConclusion.color, fontWeight: 800 }}>{hasAiData ? "Kesimpulan AI" : "Indikator Latihan"}: {dashboardConclusion.status}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#7A8397", marginTop: 4, lineHeight: 1.5 }}>{dashboardConclusion.desc}</div>
                         </div>
                       </motion.div>
                     </div>
@@ -1023,7 +1114,7 @@ export function DashboardOrtu({ isOpen, onClose, currentLevel }: DashboardOrtuPr
                           {Array.from({ length: 8 }, (_, i) => {
                             const lv = viewSeason.levelRange[0] + i;
                             const stars = levelStarsMap[lv] ?? -1;
-                            const isPlayed = data.some((d) => d.level_id === lv);
+                            const isPlayed = data.some((d) => d.level_id === lv && d.stars > 0);
                             const barH = stars > 0 ? stars * 40 : 0;
                             const x = 46 + i * 33;
                             const barW = 20;

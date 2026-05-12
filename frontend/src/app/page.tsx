@@ -293,7 +293,9 @@ export default function HomePage() {
       if (data) {
         // Cari bintang tertinggi per level
         data.forEach((row) => {
-          progressMap[row.level_id] = Math.max(progressMap[row.level_id] || 0, row.stars);
+          if (row.stars > 0) {
+            progressMap[row.level_id] = Math.max(progressMap[row.level_id] || 0, row.stars);
+          }
         });
       }
 
@@ -559,21 +561,25 @@ export default function HomePage() {
                 level={playingLevel}
                 onFinish={async (result) => {
                   try {
-                    await supabase.from("game_results").insert({
-                      level_id: playingLevel,
-                      stars: result.stars,
-                      total_salah: result.totalSalah,
-                      rata_waktu: result.rataWaktu,
-                      detail_error: result.detailError,
-                      dyslexia_assessment: result.dyslexiaAssessment || null,
-                    });
+                    const completedLevel = result.stars > 0;
+
+                    if (completedLevel) {
+                      await supabase.from("game_results").insert({
+                        level_id: playingLevel,
+                        stars: result.stars,
+                        total_salah: result.totalSalah,
+                        rata_waktu: result.rataWaktu,
+                        detail_error: result.detailError,
+                        dyslexia_assessment: result.dyslexiaAssessment || null,
+                      });
+                    }
 
                     setLevels(prev => {
                       const newLevels = prev.map(lvl => {
-                        if (lvl.id === playingLevel) {
+                        if (completedLevel && lvl.id === playingLevel) {
                           return { ...lvl, stars: Math.max(lvl.stars, result.stars), completed: true };
                         }
-                        if (lvl.id === (playingLevel as number) + 1) {
+                        if (completedLevel && lvl.id === (playingLevel as number) + 1) {
                           return { ...lvl, unlocked: true };
                         }
                         return lvl;

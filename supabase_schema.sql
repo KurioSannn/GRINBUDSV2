@@ -6,5 +6,12 @@ create table game_results (
   rata_waktu float not null,
   detail_error jsonb,
   dyslexia_assessment jsonb,
+  final_ai_assessment jsonb,
   created_at timestamp with time zone default now()
 );
+
+alter table game_results
+add column if not exists dyslexia_assessment jsonb;
+
+alter table game_results
+add column if not exists final_ai_assessment jsonb;
